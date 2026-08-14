@@ -9,6 +9,10 @@ import { adminRouter } from "./routes/admin.js";
 
 const app = express();
 
+// Caddy sits in front as a single reverse-proxy hop — trust its
+// X-Forwarded-For so express-rate-limit identifies clients by real IP.
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(cors({ origin: env.FRONTEND_URL }));
 
