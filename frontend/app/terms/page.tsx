@@ -5,11 +5,11 @@ export const metadata = {
   description: "Terms governing registration and participation in VORTEX NEOVIA'27.",
 };
 
-const DRAFT_NOTICE = true; // flip to false once the bracketed placeholders below are filled in
+const DRAFT_NOTICE = false;
 
 export default function TermsPage() {
   return (
-    <LegalPageLayout title="Terms of Service" updated="[DATE — confirm before publishing]">
+    <LegalPageLayout title="Terms of Service" updated="August 15, 2026">
       {DRAFT_NOTICE && (
         <div
           style={{
@@ -34,10 +34,10 @@ export default function TermsPage() {
       <div>
         <H2>1. Eligibility &amp; Registration</H2>
         <P>
-          Registration is open to [ELIGIBILITY — e.g. students of any college, or Sacred Heart
-          College students only]. A valid registration requires accurate name, email, and phone
-          details, and payment of the ₹150 registration fee via Cashfree. Registration is
-          confirmed only once payment is successfully received.
+          Registration is open to students from any college, as this is an inter-collegiate
+          workshop. A valid registration requires accurate name, email, and phone details, and
+          payment of the ₹150 registration fee via Cashfree. Registration is confirmed only once
+          payment is successfully received.
         </P>
       </div>
 
@@ -82,15 +82,15 @@ export default function TermsPage() {
         <H2>6. Governing Law</H2>
         <P>
           These Terms are governed by the laws of India. Any disputes will be subject to the
-          jurisdiction of the courts in [CITY, STATE].
+          jurisdiction of the courts in Tirupattur, Tamil Nadu.
         </P>
       </div>
 
       <div>
         <H2>7. Contact</H2>
         <P>
-          Questions about these Terms can be directed to [CONTACT EMAIL], Department of Computer
-          Applications, Sacred Heart College.
+          Questions about these Terms can be directed to itzselvan74@gmail.com, Department of
+          Computer Applications, Sacred Heart College.
         </P>
       </div>
     </LegalPageLayout>

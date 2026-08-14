@@ -5,11 +5,11 @@ export const metadata = {
   description: "How VORTEX NEOVIA'27 collects, uses, and protects your registration data.",
 };
 
-const DRAFT_NOTICE = true; // flip to false once the bracketed placeholders below are filled in
+const DRAFT_NOTICE = false;
 
 export default function PrivacyPage() {
   return (
-    <LegalPageLayout title="Privacy Policy" updated="[DATE — confirm before publishing]">
+    <LegalPageLayout title="Privacy Policy" updated="August 15, 2026">
       {DRAFT_NOTICE && (
         <div
           style={{
@@ -65,9 +65,8 @@ export default function PrivacyPage() {
       <div>
         <H2>4. Data Retention</H2>
         <P>
-          Registration data is retained for [RETENTION PERIOD — e.g. one academic year after the
-          event] for record-keeping and to handle any post-event queries, after which it is
-          deleted.
+          Registration data is retained for one year after the event for record-keeping and to
+          handle any post-event queries, after which it is deleted.
         </P>
       </div>
 
@@ -75,14 +74,14 @@ export default function PrivacyPage() {
         <H2>5. Your Rights</H2>
         <P>
           You may request to see, correct, or delete the information we hold about you by
-          contacting us at [CONTACT EMAIL].
+          contacting us at itzselvan74@gmail.com.
         </P>
       </div>
 
       <div>
         <H2>6. Contact</H2>
         <P>
-          Questions about this policy can be directed to [CONTACT EMAIL], Department of Computer
+          Questions about this policy can be directed to itzselvan74@gmail.com, Department of Computer
           Applications, Sacred Heart College.
         </P>
       </div>
