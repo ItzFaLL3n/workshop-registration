@@ -146,71 +146,73 @@ export default function RegistrationForm() {
         </span>
       </div>
 
-      {/* Email */}
-      <div className={fieldClass("email")}>
-        <label htmlFor="email">Email Address</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          placeholder="Enter your email address"
-          autoComplete="email"
-          value={form.email}
-          onChange={(e) => set("email", e.target.value)}
-        />
-        <span className="error-msg" id="err-email">
-          {errors.email || "Please enter a valid email address."}
-        </span>
+      {/* Email + Phone */}
+      <div className="form-pair">
+        <div className={fieldClass("email")}>
+          <label htmlFor="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter your email address"
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => set("email", e.target.value)}
+          />
+          <span className="error-msg" id="err-email">
+            {errors.email || "Please enter a valid email address."}
+          </span>
+        </div>
+
+        <div className={fieldClass("phone")}>
+          <label htmlFor="phone">Phone Number</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            placeholder="10-digit mobile number"
+            autoComplete="tel"
+            value={form.phone}
+            onChange={(e) => set("phone", e.target.value)}
+          />
+          <span className="error-msg" id="err-phone">
+            {errors.phone || "Please enter a valid 10-digit phone number."}
+          </span>
+        </div>
       </div>
 
-      {/* Phone */}
-      <div className={fieldClass("phone")}>
-        <label htmlFor="phone">Phone Number</label>
-        <input
-          type="tel"
-          id="phone"
-          name="phone"
-          placeholder="10-digit mobile number"
-          autoComplete="tel"
-          value={form.phone}
-          onChange={(e) => set("phone", e.target.value)}
-        />
-        <span className="error-msg" id="err-phone">
-          {errors.phone || "Please enter a valid 10-digit phone number."}
-        </span>
-      </div>
+      {/* College + Department */}
+      <div className="form-pair">
+        <div className={fieldClass("college")}>
+          <label htmlFor="collegeName">College Name</label>
+          <input
+            type="text"
+            id="collegeName"
+            name="collegeName"
+            placeholder="Enter your college name"
+            autoComplete="organization"
+            value={form.college}
+            onChange={(e) => set("college", e.target.value)}
+          />
+          <span className="error-msg" id="err-collegeName">
+            {errors.college || "Please enter your college name."}
+          </span>
+        </div>
 
-      {/* College */}
-      <div className={fieldClass("college")}>
-        <label htmlFor="collegeName">College Name</label>
-        <input
-          type="text"
-          id="collegeName"
-          name="collegeName"
-          placeholder="Enter your college name"
-          autoComplete="organization"
-          value={form.college}
-          onChange={(e) => set("college", e.target.value)}
-        />
-        <span className="error-msg" id="err-collegeName">
-          {errors.college || "Please enter your college name."}
-        </span>
-      </div>
-
-      {/* Department */}
-      <div className={fieldClass("department")}>
-        <label htmlFor="department">Department</label>
-        <input
-          type="text"
-          id="department"
-          name="department"
-          placeholder="Enter your department"
-          value={form.department}
-          onChange={(e) => set("department", e.target.value)}
-        />
-        <span className="error-msg" id="err-department">
-          {errors.department || "Please enter your department."}
-        </span>
+        <div className={fieldClass("department")}>
+          <label htmlFor="department">Department</label>
+          <input
+            type="text"
+            id="department"
+            name="department"
+            placeholder="Enter your department"
+            value={form.department}
+            onChange={(e) => set("department", e.target.value)}
+          />
+          <span className="error-msg" id="err-department">
+            {errors.department || "Please enter your department."}
+          </span>
+        </div>
       </div>
 
       {/* Year of Study */}
@@ -286,19 +288,8 @@ export default function RegistrationForm() {
 
       {/* API Error */}
       {apiError && (
-        <div
-          role="alert"
-          style={{
-            background: "#fdf2f2",
-            border: "1.5px solid #d9534f",
-            borderRadius: "10px",
-            padding: "12px 16px",
-            fontSize: ".88rem",
-            color: "#c0392b",
-            fontWeight: 500,
-          }}
-        >
-          <i className="fa-solid fa-circle-exclamation" style={{ marginRight: 8 }} />
+        <div className="alert-error" role="alert">
+          <i className="fa-solid fa-circle-exclamation" />
           {apiError}
         </div>
       )}

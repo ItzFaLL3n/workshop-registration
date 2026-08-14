@@ -77,7 +77,7 @@ export default function AdminPage() {
           <div className="header-brand">
             <div className="brand-logos">
               <div className="logo-box">
-                <Image src="/college-logo.png" alt="Sacred Heart College" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/college-logo.png" alt="Sacred Heart College" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
             </div>
             <div className="brand-text">
@@ -115,63 +115,25 @@ export default function AdminPage() {
           </div>
 
           {/* Auth + controls */}
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid #dcece2",
-              borderRadius: 18,
-              padding: "28px 32px",
-              boxShadow: "0 2px 10px rgba(13,54,38,0.06)",
-              marginBottom: 28,
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 12,
-              alignItems: "flex-end",
-            }}
-          >
-            <div style={{ flex: "1 1 260px" }}>
-              <label
-                htmlFor="admin-pw"
-                style={{ display: "block", fontSize: ".84rem", fontWeight: 600, color: "#08211a", marginBottom: 6 }}
-              >
-                Admin Password
-              </label>
+          <div className="admin-toolbar" style={{ marginBottom: 28 }}>
+            <div className="form-row">
+              <label htmlFor="admin-pw">Admin Password</label>
               <input
                 id="admin-pw"
                 type="password"
                 placeholder="Enter admin password"
+                autoComplete="current-password"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && loadData()}
-                style={{
-                  width: "100%",
-                  padding: "13px 16px",
-                  border: "1.5px solid #dcece2",
-                  borderRadius: 10,
-                  background: "#f5faf7",
-                  fontSize: "1rem",
-                  color: "#0c2a1d",
-                }}
               />
             </div>
-            <div>
-              <label
-                style={{ display: "block", fontSize: ".84rem", fontWeight: 600, color: "#08211a", marginBottom: 6 }}
-              >
-                Filter
-              </label>
+            <div className="form-row field-narrow">
+              <label htmlFor="admin-filter">Filter</label>
               <select
+                id="admin-filter"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                style={{
-                  padding: "13px 16px",
-                  border: "1.5px solid #dcece2",
-                  borderRadius: 10,
-                  background: "#f5faf7",
-                  fontSize: "1rem",
-                  color: "#0c2a1d",
-                  cursor: "pointer",
-                }}
               >
                 <option value="ALL">All Statuses</option>
                 <option value="PAID">PAID</option>
@@ -199,21 +161,7 @@ export default function AdminPage() {
 
           {/* Error */}
           {error && (
-            <div
-              style={{
-                background: "#fdf2f2",
-                border: "1.5px solid #d9534f",
-                borderRadius: 12,
-                padding: "14px 20px",
-                color: "#c0392b",
-                fontSize: ".9rem",
-                fontWeight: 500,
-                marginBottom: 20,
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
+            <div className="alert-error" role="alert" style={{ marginBottom: 20 }}>
               <i className="fa-solid fa-circle-exclamation" />
               {error}
             </div>

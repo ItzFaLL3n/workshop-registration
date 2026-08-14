@@ -19,8 +19,8 @@ export default async function HomePage() {
                 <Image
                   src="/college-logo.png"
                   alt="Sacred Heart College logo"
-                  width={46}
-                  height={46}
+                  width={128}
+                  height={128}
                   style={{ objectFit: "cover" }}
                   onError={undefined}
                 />
@@ -29,8 +29,8 @@ export default async function HomePage() {
                 <Image
                   src="/department-logo.png"
                   alt="Department of Computer Applications logo"
-                  width={46}
-                  height={46}
+                  width={128}
+                  height={128}
                   style={{ objectFit: "cover" }}
                 />
               </div>

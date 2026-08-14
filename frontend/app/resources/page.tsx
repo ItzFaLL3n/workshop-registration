@@ -76,10 +76,10 @@ export default function ResourcesPage() {
           <div className="header-brand">
             <div className="brand-logos">
               <div className="logo-box">
-                <Image src="/college-logo.png" alt="Sacred Heart College" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/college-logo.png" alt="Sacred Heart College" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
               <div className="logo-box">
-                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
             </div>
             <div className="brand-text">
