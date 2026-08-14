@@ -139,6 +139,11 @@ export default function FailurePage() {
         </div>
         <div className="footer-bottom">
           <p>&copy; 2026 Department of Computer Applications. All Rights Reserved.</p>
+          <nav className="footer-legal" aria-label="Legal">
+            <Link href="/privacy">Privacy Policy</Link>
+            <Link href="/refund-policy">Refund Policy</Link>
+            <Link href="/terms">Terms of Service</Link>
+          </nav>
         </div>
       </footer>
     </>

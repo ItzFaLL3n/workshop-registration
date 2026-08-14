@@ -394,6 +394,11 @@ export default async function HomePage() {
         </div>
         <div className="footer-bottom">
           <p>&copy; 2026 Department of Computer Applications. All Rights Reserved.</p>
+          <nav className="footer-legal" aria-label="Legal">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/refund-policy">Refund Policy</a>
+            <a href="/terms">Terms of Service</a>
+          </nav>
         </div>
       </footer>
 
