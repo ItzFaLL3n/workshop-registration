@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RegistrationStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+model Registration {
+  id            String              @id @default(cuid())
+  name          String
+  email         String
+  phone         String
+  college       String?
+  department    String?
+  year          String?
+  gender        String?
+  foodPreference String?
+  status        RegistrationStatus  @default(PENDING)
+  amount        Int                 // in paise (e.g. 49900 = ₹499)
+  cfOrderId     String?             @unique
+  cfPaymentId   String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([status])
+  @@index([email])
+}
