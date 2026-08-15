@@ -20,10 +20,10 @@ export default function SuccessPage({
           <div className="header-brand">
             <div className="brand-logos">
               <div className="logo-box">
-                <Image src="/college-logo.png" alt="Sacred Heart College" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/college-logo.png" alt="Sacred Heart College" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
               <div className="logo-box">
-                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
             </div>
             <div className="brand-text">
@@ -79,10 +79,11 @@ export default function SuccessPage({
 
           <h1
             style={{
-              fontFamily: "Fraunces, serif",
+              fontFamily: "Inter, sans-serif",
               fontSize: "clamp(1.8rem, 4vw, 2.4rem)",
               color: "#08211a",
-              fontWeight: 650,
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
               margin: "18px 0 14px",
               lineHeight: 1.1,
             }}

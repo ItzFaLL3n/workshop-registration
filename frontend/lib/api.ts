@@ -1,11 +1,5 @@
 export function getApiUrl(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL;
-  if (!url) {
-    throw new Error(
-      "NEXT_PUBLIC_API_URL is not set. Copy .env.local.example to .env.local and fill it in."
-    );
-  }
-  return url;
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 }
 
 const API_URL = getApiUrl();
@@ -34,9 +28,13 @@ export async function registerForWorkshop(payload: RegisterPayload) {
 
 export async function getRegistrationCount(): Promise<number> {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
     const res = await fetch(`${API_URL}/register/count`, {
-      next: { revalidate: 60 }, // Next.js cache — refresh every 60s
+      next: { revalidate: 60 },
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     if (!res.ok) return 0;
     const data = await res.json();
     return data.count ?? 0;

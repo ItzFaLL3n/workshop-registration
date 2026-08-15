@@ -18,10 +18,10 @@ export default function LegalPageLayout({
           <div className="header-brand">
             <div className="brand-logos">
               <div className="logo-box">
-                <Image src="/college-logo.png" alt="Sacred Heart College" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/college-logo.png" alt="Sacred Heart College" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
               <div className="logo-box">
-                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
             </div>
             <div className="brand-text">
@@ -92,7 +92,7 @@ export default function LegalPageLayout({
 
 export function H2({ children }: { children: ReactNode }) {
   return (
-    <h2 style={{ fontFamily: "Fraunces, serif", fontSize: "1.2rem", fontWeight: 650, color: "#08211a", margin: 0 }}>
+    <h2 style={{ fontFamily: "Inter, sans-serif", fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#08211a", margin: 0 }}>
       {children}
     </h2>
   );

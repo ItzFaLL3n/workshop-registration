@@ -1,417 +1,599 @@
 import RegistrationForm from "@/components/RegistrationForm";
 import ClientScripts from "@/components/ClientScripts";
+import dynamic from "next/dynamic";
+import BaseVoxelGraphic from "@/components/BaseVoxelGraphic";
+import MarqueeLogos from "@/components/MarqueeLogos";
+import ThemeToggle from "@/components/ThemeToggle";
+import {
+  GaugeBlueprint,
+  NetworkNodesBlueprint,
+  SecurityChainBlueprint,
+  RadarBridgeBlueprint,
+} from "@/components/BlueprintIllustrations";
+import AgentWorkflowDiagram from "@/components/AgentWorkflowDiagram";
 import { getRegistrationCount } from "@/lib/api";
 import Image from "next/image";
 
-export const revalidate = 60; // ISR — revalidate every 60s for count
+import FloatingNavbar from "@/components/FloatingNavbar";
+
+const PhotoSlideshow = dynamic(() => import("@/components/PhotoSlideshow"), {
+  ssr: false,
+});
+
+export const revalidate = 60;
 
 export default async function HomePage() {
   const count = await getRegistrationCount();
 
   return (
     <>
-      {/* ============ HEADER ============ */}
-      <header className="site-header" id="site-header">
-        <div className="header-inner">
-          <div className="header-brand">
-            <div className="brand-logos">
-              <div className="logo-box" aria-label="Sacred Heart College logo">
-                <Image
-                  src="/college-logo.png"
-                  alt="Sacred Heart College logo"
-                  width={46}
-                  height={46}
-                  style={{ objectFit: "cover" }}
-                  onError={undefined}
-                />
-              </div>
-              <div className="logo-box" aria-label="Department of Computer Applications logo">
-                <Image
-                  src="/department-logo.png"
-                  alt="Department of Computer Applications logo"
-                  width={46}
-                  height={46}
-                  style={{ objectFit: "cover" }}
-                />
-              </div>
-            </div>
-            <div className="brand-text">
-              <span className="brand-college">Sacred Heart College</span>
-              <span className="brand-dept">Dept. of Computer Applications</span>
-            </div>
-          </div>
-
-          <nav className="main-nav" id="main-nav" aria-label="Primary">
-            <ul>
-              <li><a href="#home" className="nav-link active" data-nav="home">Home</a></li>
-              <li><a href="#registration" className="nav-link" data-nav="registration">Registration</a></li>
-              <li><a href="#instructions" className="nav-link" data-nav="instructions">Instructions</a></li>
-              <li><a href="#tutorial" className="nav-link" data-nav="tutorial">Tutorial</a></li>
-            </ul>
-          </nav>
-
-          <button
-            className="hamburger"
-            id="hamburger"
-            aria-label="Toggle navigation menu"
-            aria-expanded="false"
-            aria-controls="mobile-nav"
-          >
-            <span /><span /><span />
-          </button>
-        </div>
-
-        <nav className="mobile-nav" id="mobile-nav" aria-label="Mobile">
-          <a href="#home" className="mobile-link" data-nav="home">Home</a>
-          <a href="#registration" className="mobile-link" data-nav="registration">Registration</a>
-          <a href="#instructions" className="mobile-link" data-nav="instructions">Instructions</a>
-          <a href="#tutorial" className="mobile-link" data-nav="tutorial">Tutorial</a>
-        </nav>
-      </header>
+      {/* ── APPLE-STYLED FLOATING NAVBAR ────────────────────── */}
+      <FloatingNavbar currentPath="/" />
 
       <main>
-        {/* ============ HOME / HERO ============ */}
-        <section className="section hero" id="home">
-          <div className="hero-bg" aria-hidden="true">
-            <canvas id="agent-canvas" />
-          </div>
+        {/* ── 3. HERO ──────────────────────────────────────────── */}
+        <section className="hero-wrapper" id="home">
+          <div className="hero-grid">
+            {/* Left */}
+            <div className="hero-left-col">
+              <div className="hero-eyebrow-pill">
+                <i className="fa-solid fa-code-fork" style={{ fontSize: 10 }} />
+                <span>INTER-COLLEGIATE WORKSHOP / 2026</span>
+              </div>
 
-          <div className="hero-inner reveal">
-            <div className="hero-copy">
-              <span className="eyebrow">
-                <i className="fa-solid fa-diagram-project" />
-                Inter&#8209;Collegiate Workshop&nbsp;/&nbsp;2026
-              </span>
-
-              <h1 className="hero-title">
-                <span className="line">LLM</span>
-                <span className="line accent">AGENTS</span>
+              <h1 className="hero-title-display">
+                <span className="hero-title-serif">LLM</span>
+                <span className="hero-title-serif accent">AGENTS</span>
               </h1>
 
-              <p className="hero-subtitle">Concept, Tools and Applications</p>
+              <div className="hero-subtitle-mono">
+                Concept, Tools and Applications
+              </div>
 
-              <p className="hero-text">
-                You are cordially invited to an engaging inter-collegiate workshop exploring
-                the world of Large Language Model Agents, their concepts, tools and
-                real-world applications.
+              <p className="hero-desc-para">
+                You are cordially invited to an engaging inter-collegiate workshop
+                exploring the world of Large Language Model Agents, their concepts,
+                tools and real-world applications.
               </p>
 
-              <p className="hero-text">
-                Join students from different colleges, connect with like-minded learners,
-                exchange ideas and discover how intelligent AI agents are shaping the future
-                of technology.
+              <p className="hero-desc-para">
+                Join students from different colleges, connect with like-minded
+                learners, exchange ideas and discover how intelligent AI agents are
+                shaping the future of technology.
               </p>
 
-              <div className="hero-actions">
-                <a href="#registration" className="btn btn-primary">
-                  <span>Register Now</span>
-                  <i className="fa-solid fa-arrow-right" />
+              <div className="hero-btn-row">
+                <a href="#registration" className="btn btn-primary btn-lg">
+                  Register Now
+                  <i className="fa-solid fa-arrow-right" style={{ fontSize: 12 }} />
                 </a>
-                <a href="#tutorial" className="btn btn-ghost">Explore Workshop</a>
+                <a href="#overview" className="btn btn-ghost btn-lg">
+                  Explore Workshop
+                </a>
               </div>
 
-              <div className="hero-meta">
-                <div className="meta-item">
+              <div className="hero-meta-row">
+                <div className="hero-meta-item">
                   <i className="fa-solid fa-graduation-cap" />
-                  Open to all colleges
+                  <span>Open to all colleges</span>
                 </div>
-                <div className="meta-item">
-                  <i className="fa-solid fa-users" />
-                  <span id="hero-count">{count}</span> registered
+                <div className="hero-meta-item">
+                  <i className="fa-solid fa-user-group" />
+                  <span>
+                    <span className="hero-meta-count">{count}</span> registered
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="hero-visual" aria-hidden="true">
-              <div className="agent-diagram">
-                <div className="node node-user" style={{ "--d": "0" } as React.CSSProperties}>
-                  <i className="fa-solid fa-user" /><span>User</span>
+            {/* Right — Agent workflow diagram */}
+            <div className="hero-right-col">
+              <AgentWorkflowDiagram />
+            </div>
+          </div>
+        </section>
+
+        {/* ── 4. MARQUEE ───────────────────────────────────────── */}
+        <MarqueeLogos />
+
+        {/* ── 5. FEATURE CARDS ─────────────────────────────────── */}
+        <section className="section-container" id="overview">
+          <div className="section-head">
+            <span className="section-eyebrow">Pillars of the Workshop</span>
+            <h2 className="section-title">Where intelligent systems are built.</h2>
+            <p className="section-desc">
+              Discover the core concepts, modern toolkits, and autonomous workflows
+              powering the future of AI.
+            </p>
+          </div>
+
+          <div className="feature-tri-grid">
+            <div className="base-feature-card">
+              <div>
+                <div className="card-top-icon-row">
+                  <div className="card-icon-box">
+                    <i className="fa-solid fa-brain" />
+                  </div>
+                  <div className="card-arrow-indicator">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M6 14L14 6M14 6H7M14 6V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                 </div>
-                <div className="node node-llm" style={{ "--d": "1" } as React.CSSProperties}>
-                  <i className="fa-solid fa-brain" /><span>LLM</span>
+                <h3 className="card-title">Agentic Architecture</h3>
+                <p className="card-desc">
+                  Understand how Large Language Models transition from conversational
+                  chat to autonomous reasoning, memory retrieval, and planning loops.
+                </p>
+              </div>
+            </div>
+
+            <div className="base-feature-card">
+              <div>
+                <div className="card-top-icon-row">
+                  <div className="card-icon-box">
+                    <i className="fa-solid fa-toolbox" />
+                  </div>
+                  <div className="card-arrow-indicator">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M6 14L14 6M14 6H7M14 6V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                 </div>
-                <div className="node node-tools" style={{ "--d": "2" } as React.CSSProperties}>
-                  <i className="fa-solid fa-toolbox" /><span>Tools</span>
+                <h3 className="card-title">Modern AI Frameworks</h3>
+                <p className="card-desc">
+                  Gain direct experience with LangChain, LlamaIndex, Model Context
+                  Protocol (MCP), and local LLMs through live coding sandboxes.
+                </p>
+              </div>
+            </div>
+
+            <div className="base-feature-card">
+              <div>
+                <div className="card-top-icon-row">
+                  <div className="card-icon-box">
+                    <i className="fa-solid fa-robot" />
+                  </div>
+                  <div className="card-arrow-indicator">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                      <path d="M6 14L14 6M14 6H7M14 6V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
                 </div>
-                <div className="node node-agent" style={{ "--d": "3" } as React.CSSProperties}>
-                  <i className="fa-solid fa-robot" /><span>Agent</span>
-                </div>
-                <div className="node node-action" style={{ "--d": "4" } as React.CSSProperties}>
-                  <i className="fa-solid fa-bolt" /><span>Action</span>
-                </div>
-                <svg className="agent-links" viewBox="0 0 400 400" preserveAspectRatio="none">
-                  <path className="link" d="M110,70 C180,90 220,150 240,180" />
-                  <path className="link" d="M240,180 C280,140 320,120 340,90" />
-                  <path className="link" d="M240,180 C220,230 160,270 120,300" />
-                  <path className="link" d="M120,300 C200,330 280,320 320,300" />
+                <h3 className="card-title">Autonomous Solutions</h3>
+                <p className="card-desc">
+                  Deploy custom agents that interact with real-world APIs, automate
+                  multi-step web tasks, execute code, and collaborate in teams.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="section-divider" />
+
+        {/* ── 6. STATS ─────────────────────────────────────────── */}
+        <section className="section-container" style={{ paddingTop: "64px" }}>
+          <div className="section-head centered">
+            <span className="section-eyebrow">By The Numbers</span>
+            <h2 className="section-title">Where the next generation transacts with AI.</h2>
+            <p className="section-desc">
+              Setting the benchmark for hands-on, high-impact inter-collegiate tech workshops.
+            </p>
+          </div>
+
+          <div className="stats-container">
+            <div className="stat-cell">
+              <span className="stat-number">₹150</span>
+              <span className="stat-label">Registration Fee</span>
+            </div>
+            <div className="stat-cell">
+              <span className="stat-number">2–3 Days</span>
+              <span className="stat-label">Intensive Sessions</span>
+            </div>
+            <div className="stat-cell">
+              <span className="stat-number">Open</span>
+              <span className="stat-label">All Colleges &amp; Majors</span>
+            </div>
+            <div className="stat-cell">
+              <span className="stat-number" id="hero-count">{count}+</span>
+              <span className="stat-label">Students Registered</span>
+            </div>
+          </div>
+        </section>
+
+        <hr className="section-divider" />
+
+        {/* ── 7. BLUEPRINT GRID ────────────────────────────────── */}
+        <section className="section-container" id="curriculum">
+          <div
+            className="flex flex-col md:flex-row md:items-end justify-between"
+            style={{ marginBottom: 40 }}
+          >
+            <div className="section-head" style={{ marginBottom: 0 }}>
+              <span className="section-eyebrow">Technical Architecture</span>
+              <h2 className="section-title">
+                The platform for practical <br />
+                agent engineering at scale.
+              </h2>
+            </div>
+            <div style={{ marginTop: 16 }}>
+              <a href="#registration" className="btn btn-ghost">
+                <span>Join Next Cohort</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-                <div className="diagram-badge">Agentic Workflow</div>
-              </div>
+              </a>
             </div>
           </div>
 
-          <button className="scroll-cue" id="scroll-cue" aria-label="Scroll to next section">
-            <span>Scroll</span>
-            <i className="fa-solid fa-chevron-down" />
-          </button>
-        </section>
-
-        {/* ============ MISSION & VISION ============ */}
-        <section className="section mission-section" id="mission">
-          <div className="section-inner">
-            <div className="section-head reveal">
-              <span className="eyebrow">
-                <i className="fa-solid fa-seedling" /> Purpose
-              </span>
-              <h2 className="section-title">Our Mission &amp; Vision</h2>
-              <p className="section-lede">
-                This workshop brings together students from different colleges to create an
-                open platform for learning, interaction, knowledge exchange and exploration
-                of emerging Artificial Intelligence technologies.
-              </p>
-            </div>
-
-            <div className="mv-grid">
-              <div className="mv-card reveal">
-                <div className="mv-icon"><i className="fa-solid fa-bullseye" /></div>
-                <h3>Mission</h3>
-                <p>
-                  To bring together students from different colleges and provide an interactive
-                  learning environment where participants can gain practical knowledge about LLM
-                  Agents, explore modern AI tools, exchange ideas and build meaningful academic
-                  connections beyond their institutions.
-                </p>
+          <div className="blueprint-grid">
+            <div className="blueprint-card">
+              <div className="blueprint-illustration-wrap">
+                <GaugeBlueprint />
               </div>
-              <div className="mv-card reveal">
-                <div className="mv-icon"><i className="fa-solid fa-eye" /></div>
-                <h3>Vision</h3>
-                <p>
-                  To create a collaborative inter-collegiate community of future-ready students
-                  who are confident in exploring Artificial Intelligence, capable of applying
-                  emerging technologies and inspired to innovate together for the future.
+              <div className="blueprint-content">
+                <h3 className="blueprint-title">Instant, low-latency, 24/7 practice</h3>
+                <p className="blueprint-desc">
+                  Interactive sandbox environments for live experimentation. Test agent
+                  prompts, verify token throughput, and inspect trace logs in real time.
                 </p>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* ============ REGISTRATION ============ */}
-        <section className="section reg-section" id="registration">
-          <div className="section-inner">
-            <div className="section-head reveal">
-              <span className="eyebrow">
-                <i className="fa-solid fa-pen-to-square" /> Join Us
-              </span>
-              <h2 className="section-title">Workshop Registration</h2>
-              <p className="section-lede">Students from all colleges are welcome to register.</p>
-              <div className="reg-counter">
-                <i className="fa-solid fa-user-group" />
-                Registered Participants: <span id="reg-count">{String(count).padStart(2, "0")}</span>
+            <div className="blueprint-card">
+              <div className="blueprint-illustration-wrap">
+                <NetworkNodesBlueprint />
+              </div>
+              <div className="blueprint-content">
+                <h3 className="blueprint-title">Connected toolkits &amp; memory nodes</h3>
+                <p className="blueprint-desc">
+                  Connect agents to external databases, search engines, and custom
+                  Python functions using structured schemas and MCP servers.
+                </p>
               </div>
             </div>
 
-            <div className="reg-grid">
-              <RegistrationForm />
+            <div className="blueprint-card">
+              <div className="blueprint-illustration-wrap">
+                <SecurityChainBlueprint />
+              </div>
+              <div className="blueprint-content">
+                <h3 className="blueprint-title">Verified &amp; trusted certification</h3>
+                <p className="blueprint-desc">
+                  Earn an official Certificate of Completion issued by Sacred Heart
+                  College Department of Computer Applications for your portfolio.
+                </p>
+              </div>
+            </div>
 
-              <aside className="reg-side reveal">
-                <div className="side-card">
-                  <h4><i className="fa-solid fa-circle-info" /> Before you register</h4>
-                  <ul>
-                    <li>Open to students from any college or department.</li>
-                    <li>Use your full legal name as per your college ID.</li>
-                    <li>One registration per participant per email address.</li>
-                    <li>Bring your payment confirmation and college ID on the day.</li>
-                    <li>A confirmation email will be sent after successful payment.</li>
-                  </ul>
-                </div>
-                <div className="side-card side-quote">
-                  <i className="fa-solid fa-quote-left" />
-                  <p>Every agent starts with a single well-defined goal.</p>
-                </div>
-              </aside>
+            <div className="blueprint-card">
+              <div className="blueprint-illustration-wrap">
+                <RadarBridgeBlueprint />
+              </div>
+              <div className="blueprint-content">
+                <h3 className="blueprint-title">A bridge, not an island</h3>
+                <p className="blueprint-desc">
+                  Collaborate across departments and colleges. Network with peers,
+                  share repositories, and build multi-agent prototypes together.
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ============ INSTRUCTIONS ============ */}
-        <section className="section instructions-section" id="instructions">
-          <div className="section-inner">
-            <div className="section-head reveal">
-              <span className="eyebrow">
-                <i className="fa-solid fa-list-check" /> Guidelines
-              </span>
-              <h2 className="section-title">General Instructions</h2>
-              <p className="section-lede">Important information for all participants</p>
+        <hr className="section-divider" />
+
+        {/* ── 8. WORKSHOP TRACKS ───────────────────────────────── */}
+        <section className="section-container" style={{ paddingTop: "64px" }}>
+          <div className="tracks-header">
+            <div>
+              <span className="section-eyebrow">Curriculum Highlights</span>
+              <h2 className="section-title">Workshop Tracks.</h2>
+            </div>
+            <div className="carousel-nav-btns">
+              <button className="carousel-arrow-btn" aria-label="Previous track">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M10 13L5 8L10 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              <button className="carousel-arrow-btn" aria-label="Next track">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                  <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="tracks-grid">
+            <div className="track-card">
+              <div className="track-media" style={{ background: "linear-gradient(135deg, #eaf7f2 0%, #d4ede4 100%)" }}>
+                <div className="text-center">
+                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "var(--accent)" }}>TRACK 01</span>
+                  <p className="font-bold text-lg" style={{ color: "#0d3626" }}>LLM Foundations</p>
+                </div>
+              </div>
+              <div className="track-info">
+                <h3 className="track-title">Intro to Agentic AI</h3>
+                <p className="track-desc">
+                  Understand prompting strategies, token mechanics, and the shift from
+                  static completion to agentic workflows.
+                </p>
+                <span className="track-date">Session 1 • Day 1</span>
+              </div>
             </div>
 
-            <div className="instructions-grid">
-              {[
-                {
-                  n: "01",
-                  icon: "fa-clock",
-                  title: "Be on Time",
-                  desc: "Please reach the venue before the scheduled reporting time and be present throughout the sessions.",
-                },
-                {
-                  n: "02",
-                  icon: "fa-laptop",
-                  title: "Bring Your Laptop",
-                  desc: "Carry your laptop along with its charger for hands-on activities and practical sessions.",
-                },
-                {
-                  n: "03",
-                  icon: "fa-bottle-water",
-                  title: "Bring a Water Bottle",
-                  desc: "Participants are encouraged to carry their own water bottle and stay hydrated throughout the event.",
-                },
-                {
-                  n: "04",
-                  icon: "fa-id-card",
-                  title: "Carry Your ID Card",
-                  desc: "Bring your valid college ID card for participant verification and entry.",
-                },
-                {
-                  n: "05",
-                  icon: "fa-comments",
-                  title: "Participate Actively",
-                  desc: "Interact with participants from other colleges, ask questions and make the most of the workshop.",
-                },
-              ].map((card) => (
-                <div key={card.n} className="instr-card reveal">
-                  <span className="instr-num">{card.n}</span>
-                  <div className="instr-icon">
-                    <i className={`fa-solid ${card.icon}`} />
-                  </div>
-                  <h3>{card.title}</h3>
-                  <p>{card.desc}</p>
+            <div className="track-card">
+              <div className="track-media" style={{ background: "linear-gradient(135deg, #f0f9ff 0%, #d4ecfb 100%)" }}>
+                <div className="text-center">
+                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "#2563eb" }}>TRACK 02</span>
+                  <p className="font-bold text-lg" style={{ color: "#1e3a5f" }}>Tool Use &amp; MCP</p>
                 </div>
-              ))}
+              </div>
+              <div className="track-info">
+                <h3 className="track-title">Model Context Protocol</h3>
+                <p className="track-desc">
+                  Connect LLMs to databases, APIs, file systems, and external tools
+                  using standard protocol architectures.
+                </p>
+                <span className="track-date">Session 2 • Day 2</span>
+              </div>
+            </div>
+
+            <div className="track-card">
+              <div className="track-media" style={{ background: "linear-gradient(135deg, #f5f0ff 0%, #e5d9ff 100%)" }}>
+                <div className="text-center">
+                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "#7c3aed" }}>TRACK 03</span>
+                  <p className="font-bold text-lg" style={{ color: "#3b1c6e" }}>Multi-Agent Loops</p>
+                </div>
+              </div>
+              <div className="track-info">
+                <h3 className="track-title">Swarm Coordination</h3>
+                <p className="track-desc">
+                  Design agent swarms where specialized worker agents collaborate,
+                  critique, and complete complex software tasks.
+                </p>
+                <span className="track-date">Session 3 • Day 2</span>
+              </div>
+            </div>
+
+            <div className="track-card">
+              <div className="track-media" style={{ background: "linear-gradient(135deg, #fff7ed 0%, #fde8c0 100%)" }}>
+                <div className="text-center">
+                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "#b45309" }}>TRACK 04</span>
+                  <p className="font-bold text-lg" style={{ color: "#451a03" }}>Live Hackathon</p>
+                </div>
+              </div>
+              <div className="track-info">
+                <h3 className="track-title">Project Showcase</h3>
+                <p className="track-desc">
+                  Build and demonstrate your own custom AI agent solution. Compete for
+                  best project recognitions and awards.
+                </p>
+                <span className="track-date">Session 4 • Day 3</span>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ============ TUTORIAL ============ */}
-        <section className="section tutorial-section" id="tutorial">
-          <div className="section-inner">
-            <div className="section-head reveal">
-              <span className="eyebrow">
-                <i className="fa-solid fa-book-open" /> Get Ready
-              </span>
-              <h2 className="section-title">Workshop Tutorial</h2>
-              <p className="section-lede">Prepare yourself for the LLM Agents session</p>
-              <p className="section-para">
-                The workshop introduces participants to the fundamentals of LLM Agents and
-                demonstrates how modern AI tools can be used to create intelligent,
-                task-oriented applications.
+        <hr className="section-divider" />
+
+        {/* ── 9. PHOTO SLIDESHOW ───────────────────────────────── */}
+        <PhotoSlideshow />
+
+        <hr className="section-divider" />
+
+        {/* ── 10. REGISTRATION ─────────────────────────────────── */}
+        <section className="section-container" id="registration">
+          <div className="section-head">
+            <span className="section-eyebrow">Participant Portal</span>
+            <h2 className="section-title">Workshop Registration</h2>
+            <p className="section-desc">
+              Students from any college, department, or semester are eligible to register.
+            </p>
+          </div>
+
+          <div className="reg-section-wrap">
+            <RegistrationForm />
+
+            <div className="side-info-card">
+              <h4>Before you register</h4>
+              <ul className="side-info-list">
+                <li>Use your official full name as per your college identity card.</li>
+                <li>One registration per participant email address.</li>
+                <li>Instant payment confirmation via Cashfree PG with receipt.</li>
+                <li>Bring your laptop and college ID on the scheduled session days.</li>
+                <li>Certificates will be issued upon workshop completion.</li>
+              </ul>
+
+              <div
+                style={{
+                  padding: "16px",
+                  borderRadius: "var(--r-md)",
+                  background: "var(--accent-light)",
+                  border: "1px solid var(--accent-line)",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "var(--font-mono)",
+                    color: "var(--accent)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontWeight: 600,
+                    marginBottom: 6,
+                  }}
+                >
+                  Live Registration Status
+                </p>
+                <p style={{ fontSize: 13.5, fontWeight: 550, color: "var(--ink)" }}>
+                  Registrations are actively processed in real-time.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <hr className="section-divider" />
+
+        {/* ── 11. GUIDELINES ───────────────────────────────────── */}
+        <section className="section-container" id="guidelines" style={{ paddingTop: "64px" }}>
+          <div className="section-head">
+            <span className="section-eyebrow">Event Policy</span>
+            <h2 className="section-title">General Instructions</h2>
+            <p className="section-desc">Essential information for attending students.</p>
+          </div>
+
+          <div className="guidelines-grid">
+            {[
+              { num: "01", title: "Be On Time",        desc: "Report to the venue 15 minutes before scheduled session time to ensure smooth seating and setup." },
+              { num: "02", title: "Bring Laptop & Charger", desc: "Hands-on labs require a working laptop with modern browser and internet connectivity." },
+              { num: "03", title: "Valid College ID",  desc: "Carry your physical college identity card for attendance verification and kit issuance." },
+              { num: "04", title: "Active Participation", desc: "Engage in collaborative team tasks, ask questions, and build interactive projects." },
+              { num: "05", title: "Certificate Criteria", desc: "Attendance across all sessions and project submission required for Certificate of Completion." },
+              { num: "06", title: "Refreshments Provided", desc: "Lunch and refreshments will be arranged on workshop days for all registered attendees." },
+            ].map((g) => (
+              <div key={g.num} className="guideline-card">
+                <span className="guideline-num">{g.num}</span>
+                <h3 className="guideline-title">{g.title}</h3>
+                <p className="guideline-desc">{g.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 12. CTA BANNER ───────────────────────────────────── */}
+        <section className="section-container">
+          <div className="vibrant-cta-banner">
+            <div className="cta-voxel-left">
+              <BaseVoxelGraphic variant="banner" />
+            </div>
+            <div className="cta-voxel-right">
+              <BaseVoxelGraphic variant="banner" />
+            </div>
+
+            <div
+              className="relative z-10 flex flex-col items-center gap-5"
+              style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 20 }}
+            >
+              <h2>Start your journey with LLM Agents.</h2>
+              <p>
+                Learn on an open, interactive platform. Build autonomous software,
+                exchange ideas with peers, and prepare for the next era of AI.
               </p>
-            </div>
-
-            <div className="tutorial-grid">
-              {[
-                {
-                  n: "01",
-                  icon: "fa-lightbulb",
-                  title: "Concepts",
-                  desc: "Understand Large Language Models, AI agents, agentic workflows and how intelligent systems operate.",
-                },
-                {
-                  n: "02",
-                  icon: "fa-screwdriver-wrench",
-                  title: "Tools",
-                  desc: "Explore modern tools and frameworks used to build and experiment with LLM-powered agents.",
-                },
-                {
-                  n: "03",
-                  icon: "fa-rocket",
-                  title: "Applications",
-                  desc: "Discover practical applications of LLM Agents across education, business, automation and technology.",
-                },
-              ].map((card) => (
-                <div key={card.n} className="tut-card reveal">
-                  <span className="tut-num">{card.n}</span>
-                  <div className="tut-icon">
-                    <i className={`fa-solid ${card.icon}`} />
-                  </div>
-                  <h3>{card.title}</h3>
-                  <p>{card.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="workflow-wrap reveal">
-              <h3 className="workflow-title">How an Agent Thinks</h3>
-              <div className="workflow">
-                {[
-                  { icon: "fa-user", label: "User" },
-                  { icon: "fa-brain", label: "LLM" },
-                  { icon: "fa-toolbox", label: "Tools" },
-                  { icon: "fa-robot", label: "Agent" },
-                  { icon: "fa-bolt", label: "Action" },
-                  { icon: "fa-flag-checkered", label: "Result" },
-                ].map((step, i, arr) => (
-                  <div key={step.label} style={{ display: "contents" }}>
-                    <div className="wf-step">
-                      <div className="wf-dot">
-                        <i className={`fa-solid ${step.icon}`} />
-                      </div>
-                      <span>{step.label}</span>
-                    </div>
-                    {i < arr.length - 1 && (
-                      <div className="wf-arrow">
-                        <i className="fa-solid fa-chevron-down" />
-                      </div>
-                    )}
-                  </div>
-                ))}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", justifyContent: "center", marginTop: 8 }}>
+                <a href="#registration" className="btn btn-cta-white btn-lg">
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 7,
+                      height: 7,
+                      borderRadius: 2,
+                      background: "var(--accent)",
+                      marginRight: 4,
+                    }}
+                  />
+                  Register for Workshop
+                </a>
+                <a href="/install" className="btn btn-cta-translucent btn-lg">
+                  Installation Guide
+                </a>
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* ============ FOOTER ============ */}
+      {/* ── 13. FOOTER ───────────────────────────────────────── */}
       <footer className="site-footer">
         <div className="footer-inner">
-          <div className="footer-brand">
-            <span className="footer-event">
-              VORTEX NEOVIA<sup>&apos;27</sup>
-            </span>
-            <p className="footer-workshop">
-              LLM Agents<br />
-              <span>Concept, Tools and Applications</span>
-            </p>
+          <div className="footer-top-row">
+            <div className="footer-brand-col">
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
+                  <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                </div>
+                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
+                  <Image src="/department-logo.png" alt="Department of Computer Applications logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                </div>
+              </div>
+              <span
+                style={{
+                  fontWeight: 650,
+                  letterSpacing: "-0.02em",
+                  fontSize: 13.5,
+                  color: "var(--ink)",
+                  marginTop: 4,
+                }}
+              >
+                VORTEX NEOVIA &apos;27 • LLM Agents
+              </span>
+              <p style={{ fontSize: 12.5, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
+                Department of Computer Applications<br />
+                Sacred Heart College (Autonomous), Tirupattur
+              </p>
+              <div className="status-indicator">
+                <span className="status-dot" />
+                <span>Registrations Open</span>
+              </div>
+            </div>
+
+            <div className="footer-links-grid">
+              <div>
+                <span className="footer-col-title">Navigation</span>
+                <ul className="footer-col-links">
+                  <li><a href="#home">Home</a></li>
+                  <li><a href="#overview">Overview</a></li>
+                  <li><a href="#curriculum">Curriculum</a></li>
+                  <li><a href="#gallery">Gallery</a></li>
+                  <li><a href="#registration">Registration</a></li>
+                </ul>
+              </div>
+
+              <div>
+                <span className="footer-col-title">Guidelines</span>
+                <ul className="footer-col-links">
+                  <li><a href="#guidelines">Instructions</a></li>
+                  <li><a href="/install">Installation Guide</a></li>
+                  <li><a href="/resources">Resources</a></li>
+                  <li><a href="/terms">Terms &amp; Conditions</a></li>
+                  <li><a href="/privacy">Privacy Policy</a></li>
+                </ul>
+              </div>
+
+              <div>
+                <span className="footer-col-title">Contact &amp; Help</span>
+                <ul className="footer-col-links">
+                  <li><a href="/refund-policy">Refund Policy</a></li>
+                  <li><a href="mailto:mca@shctpt.edu">mca@shctpt.edu</a></li>
+                  <li><a href="/admin">Admin Portal</a></li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div className="footer-org">
-            <p>Department of Computer Applications</p>
-            <p>Sacred Heart College</p>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, padding: "16px 0 4px" }}>
+            <div style={{ height: 1, flex: 1, maxWidth: 100, background: "var(--line)" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 9999, border: "1px solid var(--line)", background: "var(--surface-2)" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)" }} />
+              <span style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--ink-4)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 500 }}>
+                LLM Learning &amp; Autonomous Agents · 2026
+              </span>
+            </div>
+            <div style={{ height: 1, flex: 1, maxWidth: 100, background: "var(--line)" }} />
           </div>
-          <nav className="footer-nav" aria-label="Footer">
-            <a href="#home">Home</a>
-            <a href="#registration">Registration</a>
-            <a href="#instructions">Instructions</a>
-            <a href="#tutorial">Tutorial</a>
-          </nav>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2026 Department of Computer Applications. All Rights Reserved.</p>
-          <nav className="footer-legal" aria-label="Legal">
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/refund-policy">Refund Policy</a>
-            <a href="/terms">Terms of Service</a>
-          </nav>
+
+          <div className="footer-bottom-row">
+            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved.</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+              <a href="/privacy"        style={{ color: "var(--ink-4)", transition: "color .15s" }}>Privacy</a>
+              <a href="/refund-policy"  style={{ color: "var(--ink-4)", transition: "color .15s" }}>Refunds</a>
+              <a href="/terms"          style={{ color: "var(--ink-4)", transition: "color .15s" }}>Terms</a>
+            </div>
+          </div>
         </div>
       </footer>
-
-      {/* Back to top */}
-      <button className="back-to-top" id="back-to-top" aria-label="Back to top">
-        <i className="fa-solid fa-arrow-up" />
-      </button>
-
-      {/* Toast */}
-      <div className="toast" id="toast" role="status" aria-live="polite">
-        <i className="fa-solid fa-circle-check" />
-        <span>Registration submitted successfully!</span>
-      </div>
 
       <ClientScripts />
     </>

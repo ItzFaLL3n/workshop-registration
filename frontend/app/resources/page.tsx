@@ -76,10 +76,10 @@ export default function ResourcesPage() {
           <div className="header-brand">
             <div className="brand-logos">
               <div className="logo-box">
-                <Image src="/college-logo.png" alt="Sacred Heart College" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/college-logo.png" alt="Sacred Heart College" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
               <div className="logo-box">
-                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={46} height={46} style={{ objectFit: "cover" }} />
+                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={128} height={128} style={{ objectFit: "cover" }} />
               </div>
             </div>
             <div className="brand-text">
@@ -111,13 +111,60 @@ export default function ResourcesPage() {
               </p>
             </div>
 
+            {/* Interactive Install Guide Callout */}
+            <div
+              style={{
+                background: "var(--surface-1)",
+                border: "1px solid var(--line)",
+                borderRadius: 16,
+                padding: "24px 28px",
+                marginBottom: 40,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 16,
+              }}
+            >
+              <div style={{ maxWidth: 540 }}>
+                <span
+                  style={{
+                    display: "inline-block",
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "var(--accent)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    marginBottom: 6,
+                  }}
+                >
+                  Interactive Guide Available
+                </span>
+                <h3 style={{ margin: "0 0 6px", fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)" }}>
+                  Step-by-step terminal &amp; code walkthrough
+                </h3>
+                <p style={{ margin: 0, fontSize: 13.5, color: "var(--ink-3)" }}>
+                  Copy-paste commands, live line walkthrough, and verification checks for Python, Ollama, LangChain and LlamaIndex.
+                </p>
+              </div>
+              <Link
+                href="/install"
+                className="btn btn-primary"
+                style={{ fontSize: 14, padding: "10px 22px", borderRadius: "9999px" }}
+              >
+                Open Interactive Guide →
+              </Link>
+            </div>
+
             {/* Install Steps */}
             <div style={{ marginBottom: 72 }}>
               <h2
                 style={{
-                  fontFamily: "Fraunces, serif",
+                  fontFamily: "Inter, sans-serif",
                   fontSize: "1.4rem",
-                  fontWeight: 600,
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
                   color: "#08211a",
                   marginBottom: 28,
                   display: "flex",
@@ -177,8 +224,9 @@ export default function ResourcesPage() {
                     <div>
                       <p
                         style={{
-                          fontFamily: "Fraunces, serif",
-                          fontWeight: 600,
+                          fontFamily: "Inter, sans-serif",
+                          fontWeight: 700,
+                          letterSpacing: "-0.01em",
                           fontSize: "1.1rem",
                           color: "#08211a",
                           margin: "0 0 4px",
@@ -206,9 +254,10 @@ export default function ResourcesPage() {
             <div>
               <h2
                 style={{
-                  fontFamily: "Fraunces, serif",
+                  fontFamily: "Inter, sans-serif",
                   fontSize: "1.4rem",
-                  fontWeight: 600,
+                  fontWeight: 800,
+                  letterSpacing: "-0.02em",
                   color: "#08211a",
                   marginBottom: 28,
                   display: "flex",
@@ -281,7 +330,7 @@ export default function ResourcesPage() {
                       <i className={r.icon} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontFamily: "Fraunces, serif", fontWeight: 600, fontSize: "1.05rem", color: "#08211a", margin: "0 0 6px" }}>
+                      <p style={{ fontFamily: "Inter, sans-serif", fontWeight: 700, letterSpacing: "-0.01em", fontSize: "1.05rem", color: "#08211a", margin: "0 0 6px" }}>
                         {r.title}
                       </p>
                       <p style={{ fontSize: ".86rem", color: "#3f5c4d", margin: 0 }}>{r.description}</p>
