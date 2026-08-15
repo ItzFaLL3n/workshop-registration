@@ -655,94 +655,7 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <hr className="section-divider" />
-
-        {/* ── 8. WORKSHOP TRACKS ───────────────────────────────── */}
-        <section className="section-container" id="curriculum">
-          <div className="tracks-header">
-            <div>
-              <span className="section-eyebrow">Curriculum Highlights</span>
-              <h2 className="section-title">Workshop Tracks.</h2>
-            </div>
-            <div className="carousel-nav-btns">
-              <span className="text-xs font-mono text-[var(--ink-4)] uppercase tracking-wider">
-                Comprehensive 4-Part Modules
-              </span>
-            </div>
-          </div>
-
-          <div className="tracks-grid">
-            <div className="track-card">
-              <div className="track-media" style={{ background: "linear-gradient(135deg, #eaf7f2 0%, #d4ede4 100%)" }}>
-                <div className="text-center">
-                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "var(--accent)" }}>TRACK 01</span>
-                  <p className="font-bold text-lg" style={{ color: "#0d3626" }}>LLM Foundations</p>
-                </div>
-              </div>
-              <div className="track-info">
-                <h3 className="track-title">Intro to Agentic AI</h3>
-                <p className="track-desc">
-                  Understand prompting strategies, token mechanics, and the shift from
-                  static completion to agentic workflows.
-                </p>
-                <span className="track-date">Session 1 • Day 1</span>
-              </div>
-            </div>
-
-            <div className="track-card">
-              <div className="track-media" style={{ background: "linear-gradient(135deg, #f0f9ff 0%, #d4ecfb 100%)" }}>
-                <div className="text-center">
-                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "#2563eb" }}>TRACK 02</span>
-                  <p className="font-bold text-lg" style={{ color: "#1e3a5f" }}>Tool Use &amp; MCP</p>
-                </div>
-              </div>
-              <div className="track-info">
-                <h3 className="track-title">Model Context Protocol</h3>
-                <p className="track-desc">
-                  Connect LLMs to databases, APIs, file systems, and external tools
-                  using standard protocol architectures.
-                </p>
-                <span className="track-date">Session 2 • Day 2</span>
-              </div>
-            </div>
-
-            <div className="track-card">
-              <div className="track-media" style={{ background: "linear-gradient(135deg, #f5f0ff 0%, #e5d9ff 100%)" }}>
-                <div className="text-center">
-                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "#7c3aed" }}>TRACK 03</span>
-                  <p className="font-bold text-lg" style={{ color: "#3b1c6e" }}>Multi-Agent Loops</p>
-                </div>
-              </div>
-              <div className="track-info">
-                <h3 className="track-title">Swarm Coordination</h3>
-                <p className="track-desc">
-                  Design agent swarms where specialized worker agents collaborate,
-                  critique, and complete complex software tasks.
-                </p>
-                <span className="track-date">Session 3 • Day 2</span>
-              </div>
-            </div>
-
-            <div className="track-card">
-              <div className="track-media" style={{ background: "linear-gradient(135deg, #fff7ed 0%, #fde8c0 100%)" }}>
-                <div className="text-center">
-                  <span className="font-mono text-xs font-bold tracking-wider" style={{ color: "#b45309" }}>TRACK 04</span>
-                  <p className="font-bold text-lg" style={{ color: "#451a03" }}>Live Hackathon</p>
-                </div>
-              </div>
-              <div className="track-info">
-                <h3 className="track-title">Project Showcase</h3>
-                <p className="track-desc">
-                  Build and demonstrate your own custom AI agent solution. Compete for
-                  best project recognitions and awards.
-                </p>
-                <span className="track-date">Session 4 • Day 3</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <hr className="section-divider" />
+        {/* Note: Curriculum Highlights / Workshop Tracks section temporarily hidden per request */}
 
         {/* ── 9. REGISTRATION ─────────────────────────────────── */}
         <section className="section-container" id="registration">
@@ -867,8 +780,7 @@ export default async function HomePage() {
                   <li><a href="#overview">Overview</a></li>
                   <li><a href="#mission-vision">Mission &amp; Vision</a></li>
                   <li><a href="#speaker">Resource Person</a></li>
-                  <li><a href="#curriculum">Curriculum</a></li>
-                  <li><a href="#gallery">Gallery</a></li>
+                  <li><a href="#registration">Registration</a></li>
                 </ul>
               </div>
 
