@@ -27,7 +27,7 @@ export default function TermsPage() {
 
       <P>
         These Terms govern registration and participation in VORTEX NEOVIA&apos;27, an LLM
-        Agents workshop organized by the Department of Computer Applications, Sacred Heart
+        Agents workshop organized by the Department of Computer Applications (BCA), Sacred Heart
         College. By registering through this Site, you agree to these Terms.
       </P>
 
@@ -89,8 +89,8 @@ export default function TermsPage() {
       <div>
         <H2>7. Contact</H2>
         <P>
-          Questions about these Terms can be directed to itzselvan74@gmail.com, Department of
-          Computer Applications, Sacred Heart College.
+          Questions about these Terms can be directed to bca@shctpt.edu, Department of
+          Computer Applications (BCA), Sacred Heart College.
         </P>
       </div>
     </LegalPageLayout>

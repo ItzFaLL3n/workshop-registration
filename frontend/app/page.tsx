@@ -47,7 +47,7 @@ export default async function HomePage() {
             <div className="hero-left-col">
               <div className="hero-eyebrow-pill">
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "inline-block" }} />
-                <span>INTER-COLLEGIATE WORKSHOP / 2026</span>
+                <span>INTER-COLLEGIATE WORKSHOP • 27TH FEB 2026</span>
               </div>
 
               <h1 className="hero-title-display">
@@ -60,15 +60,11 @@ export default async function HomePage() {
               </div>
 
               <p className="hero-desc-para">
-                You are cordially invited to an engaging inter-collegiate workshop
-                exploring the world of Large Language Model Agents, their concepts,
-                tools and real-world applications.
+                The <strong>Department of Computer Applications (BCA)</strong> at Sacred Heart College cordially invites you to an intensive hands-on workshop on <strong>February 27, 2026</strong> at <strong>Kamarajar Arangam</strong> exploring Large Language Model Agents, autonomous reasoning, and modern AI toolchains.
               </p>
 
               <p className="hero-desc-para">
-                Join students from different colleges, connect with like-minded
-                learners, exchange ideas and discover how intelligent AI agents are
-                shaping the future of technology.
+                Join students and tech enthusiasts across institutions to experiment with live local models, build custom agentic pipelines, and discover how intelligent autonomous systems are redefining software engineering.
               </p>
 
               <div className="hero-btn-row">
@@ -84,7 +80,7 @@ export default async function HomePage() {
               <div className="hero-meta-row">
                 <div className="hero-meta-item">
                   <GraduationCap style={{ width: 15, height: 15, color: "var(--accent)" }} />
-                  <span>Open to all colleges</span>
+                  <span>Open to All Colleges &amp; Majors</span>
                 </div>
                 <div className="hero-meta-item">
                   <Users style={{ width: 15, height: 15, color: "var(--accent)" }} />
@@ -673,11 +669,12 @@ export default async function HomePage() {
             <div className="side-info-card">
               <h4>Before you register</h4>
               <ul className="side-info-list">
+                <li><strong>Event Date:</strong> February 27, 2026 (09:30 AM – 04:30 PM).</li>
+                <li><strong>Venue:</strong> Kamarajar Arangam, Sacred Heart College (Autonomous).</li>
                 <li>Use your official full name as per your college identity card.</li>
                 <li>One registration per participant email address.</li>
                 <li>Instant payment confirmation via Cashfree PG with receipt.</li>
-                <li>Bring your laptop and college ID on the scheduled session days.</li>
-                <li>Certificates will be issued upon workshop completion.</li>
+                <li>Certificates will be issued by Department of Computer Applications (BCA).</li>
               </ul>
 
               <div
@@ -721,12 +718,12 @@ export default async function HomePage() {
 
           <div className="guidelines-grid">
             {[
-              { num: "01", title: "Be On Time",        desc: "Report to the venue 15 minutes before scheduled session time to ensure smooth seating and setup." },
-              { num: "02", title: "Bring Your Laptop", desc: "Carry your laptop (Windows / Mac / Linux) with charger for hands-on exercises and coding." },
+              { num: "01", title: "Reporting Time",    desc: "Report to Kamarajar Arangam 15 minutes before the 09:30 AM session for ID verification." },
+              { num: "02", title: "Hardware",          desc: "Carry your laptop (Windows / macOS / Linux) with charger for hands-on lab exercises." },
               { num: "03", title: "Prerequisites",     desc: "Basic familiarity with any programming language is helpful. No prior AI experience is required." },
-              { num: "04", title: "Student ID Card",   desc: "Carry your valid college identity card for verification at the registration desk on arrival." },
-              { num: "05", title: "Lunch Provided",    desc: "Lunch and refreshments will be provided on all workshop days for registered attendees." },
-              { num: "06", title: "Certificate",       desc: "Certificate of participation will be awarded upon successful completion of all sessions." },
+              { num: "04", title: "Student ID Card",   desc: "Carry your valid college identity card and Order ID for verification at check-in." },
+              { num: "05", title: "Lunch & Refreshments", desc: "Lunch and session refreshments will be provided for all registered attendees." },
+              { num: "06", title: "Certificate",       desc: "Issued by Sacred Heart College Dept. of Computer Applications (BCA) upon full attendance." },
             ].map((g, i) => (
               <div key={i} className="guideline-card">
                 <span className="guideline-num">{g.num}</span>
@@ -748,7 +745,7 @@ export default async function HomePage() {
                   <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "cover" }} />
                 </div>
                 <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
-                  <Image src="/department-logo.png" alt="Department of Computer Applications logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                  <Image src="/department-logo.png" alt="Department of Computer Applications (BCA) logo" width={32} height={32} style={{ objectFit: "cover" }} />
                 </div>
               </div>
               <span
@@ -763,7 +760,7 @@ export default async function HomePage() {
                 VORTEX NEOVIA &apos;27 • LLM Agents
               </span>
               <p style={{ fontSize: 12.5, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
-                Department of Computer Applications<br />
+                Department of Computer Applications (BCA)<br />
                 Sacred Heart College (Autonomous), Tirupattur
               </p>
               <div className="status-indicator">
@@ -799,7 +796,7 @@ export default async function HomePage() {
                 <span className="footer-col-title">Contact &amp; Help</span>
                 <ul className="footer-col-links">
                   <li><a href="/refund-policy">Refund Policy</a></li>
-                  <li><a href="mailto:mca@shctpt.edu">mca@shctpt.edu</a></li>
+                  <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
                   <li><a href="/admin">Admin Portal</a></li>
                 </ul>
               </div>

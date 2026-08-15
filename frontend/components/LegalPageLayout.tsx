@@ -19,7 +19,7 @@ export default function LegalPageLayout({
       <main
         style={{
           minHeight: "calc(100vh - 70px)",
-          padding: "clamp(32px, 5vw, 64px) 20px 80px",
+          padding: "clamp(100px, 14vh, 140px) 20px 80px",
           background: "radial-gradient(ellipse at 50% 10%, rgba(22, 163, 107, 0.06) 0%, rgba(9, 9, 11, 0) 70%)",
         }}
       >
@@ -94,7 +94,7 @@ export default function LegalPageLayout({
                   <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "cover" }} />
                 </div>
                 <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
-                  <Image src="/department-logo.png" alt="Department of Computer Applications logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                  <Image src="/department-logo.png" alt="Department of Computer Applications (BCA) logo" width={32} height={32} style={{ objectFit: "cover" }} />
                 </div>
               </div>
               <span
@@ -109,7 +109,7 @@ export default function LegalPageLayout({
                 VORTEX NEOVIA &apos;27 • LLM Agents
               </span>
               <p style={{ fontSize: 12.5, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
-                Department of Computer Applications<br />
+                Department of Computer Applications (BCA)<br />
                 Sacred Heart College (Autonomous), Tirupattur
               </p>
             </div>
@@ -136,7 +136,7 @@ export default function LegalPageLayout({
               <div>
                 <span className="footer-col-title">Help &amp; Inquiries</span>
                 <ul className="footer-col-links">
-                  <li><a href="mailto:mca@shctpt.edu">mca@shctpt.edu</a></li>
+                  <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
                 </ul>
               </div>
             </div>

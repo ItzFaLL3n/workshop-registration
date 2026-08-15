@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       )}
 
       <P>
-        This Privacy Policy explains how the Department of Computer Applications, Sacred Heart
+        This Privacy Policy explains how the Department of Computer Applications (BCA), Sacred Heart
         College, collects and uses information submitted through the VORTEX NEOVIA&apos;27
         registration site (&quot;the Site&quot;).
       </P>
@@ -74,15 +74,15 @@ export default function PrivacyPage() {
         <H2>5. Your Rights</H2>
         <P>
           You may request to see, correct, or delete the information we hold about you by
-          contacting us at itzselvan74@gmail.com.
+          contacting us at bca@shctpt.edu.
         </P>
       </div>
 
       <div>
         <H2>6. Contact</H2>
         <P>
-          Questions about this policy can be directed to itzselvan74@gmail.com, Department of Computer
-          Applications, Sacred Heart College.
+          Questions about this policy can be directed to bca@shctpt.edu, Department of Computer
+          Applications (BCA), Sacred Heart College.
         </P>
       </div>
     </LegalPageLayout>

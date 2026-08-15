@@ -4,7 +4,7 @@ import React from "react";
 
 const PARTNERS = [
   { name: "Sacred Heart College",          icon: "fa-building-columns", tag: "HOST INSTITUTION" },
-  { name: "Dept of Computer Applications", icon: "fa-laptop-code",      tag: "MCA DEPT"         },
+  { name: "Dept of Computer Applications", icon: "fa-laptop-code",      tag: "BCA DEPT"         },
   { name: "OpenAI Agents",                 icon: "fa-brain",            tag: "AI PLATFORM"      },
   { name: "Anthropic Claude",              icon: "fa-atom",             tag: "RESEARCH"         },
   { name: "LangChain",                     icon: "fa-link",             tag: "FRAMEWORK"        },

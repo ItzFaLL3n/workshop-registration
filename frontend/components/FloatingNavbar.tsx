@@ -35,7 +35,7 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
             <div className="logo-img-wrap">
               <Image
                 src="/department-logo.png"
-                alt="Department of Computer Applications logo"
+                alt="Department of Computer Applications (BCA) logo"
                 width={32}
                 height={32}
                 style={{ objectFit: "contain" }}
@@ -45,7 +45,7 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
           </div>
           <div className="brand-info">
             <span className="brand-title">Sacred Heart College</span>
-            <span className="brand-sub">Dept. of Computer Applications</span>
+            <span className="brand-sub">Dept. of Computer Applications (BCA)</span>
           </div>
         </Link>
 

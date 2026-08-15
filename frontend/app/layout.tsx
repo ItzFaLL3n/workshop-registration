@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "LLM Agents Workshop | Sacred Heart College",
   description:
-    "LLM Agents — Concept, Tools and Applications. An inter-collegiate workshop by the Department of Computer Applications, Sacred Heart College.",
+    "LLM Agents — Concept, Tools and Applications. An inter-collegiate workshop on February 27, 2026 by the Department of Computer Applications (BCA), Sacred Heart College.",
 };
 
 export default function RootLayout({
