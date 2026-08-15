@@ -19,7 +19,7 @@ export default function MarqueeLogos() {
     <div className="marquee-section">
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 24px", marginBottom: 14, textAlign: "center" }}>
         <p className="marquee-label">
-          Supported by &amp; Open to 50+ Institutions &amp; AI Research Labs
+          What you will learn by the end of this workshop
         </p>
       </div>
 
