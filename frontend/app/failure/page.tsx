@@ -1,150 +1,323 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-
-export const metadata = {
-  title: "Payment Failed | LLM Agents Workshop",
-  description: "Your payment did not complete. Please try again.",
-};
+import {
+  AlertTriangle,
+  RotateCcw,
+  Home,
+  Mail,
+  ShieldAlert,
+  ArrowRight,
+  HelpCircle,
+} from "lucide-react";
+import FloatingNavbar from "@/components/FloatingNavbar";
 
 export default function FailurePage() {
   return (
     <>
-      <header className="site-header" id="site-header" style={{ position: "sticky", top: 0 }}>
-        <div className="header-inner">
-          <div className="header-brand">
-            <div className="brand-logos">
-              <div className="logo-box">
-                <Image src="/college-logo.png" alt="Sacred Heart College" width={128} height={128} style={{ objectFit: "cover" }} />
-              </div>
-              <div className="logo-box">
-                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={128} height={128} style={{ objectFit: "cover" }} />
-              </div>
-            </div>
-            <div className="brand-text">
-              <span className="brand-college">Sacred Heart College</span>
-              <span className="brand-dept">Dept. of Computer Applications</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <FloatingNavbar currentPath="/failure" />
 
       <main
         style={{
-          minHeight: "calc(100vh - 92px - 200px)",
+          minHeight: "calc(100vh - 70px)",
+          padding: "clamp(32px, 6vw, 72px) 20px 80px",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          padding: "60px 24px",
-          background: "radial-gradient(circle at 50% 30%, #fff3f3 0%, #ffffff 65%)",
+          justifyContent: "flex-start",
+          position: "relative",
+          background: "radial-gradient(ellipse at 50% 15%, rgba(248, 113, 113, 0.10) 0%, rgba(9, 9, 11, 0) 70%)",
         }}
       >
         <div
           style={{
-            maxWidth: 520,
+            maxWidth: 680,
             width: "100%",
-            textAlign: "center",
-            background: "#ffffff",
-            border: "1.5px solid #f5c6c6",
-            borderRadius: "28px",
-            padding: "56px 44px",
-            boxShadow: "0 24px 60px rgba(13,54,38,0.10)",
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
           }}
         >
-          {/* Failure icon */}
+          {/* Main Card */}
           <div
             style={{
-              width: 80,
-              height: 80,
-              borderRadius: "50%",
-              background: "linear-gradient(150deg, #e05555, #a82020)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 28px",
-              boxShadow: "0 0 0 12px rgba(224,85,85,0.08)",
+              background: "var(--surface-1)",
+              border: "1px solid var(--line)",
+              borderRadius: 24,
+              padding: "clamp(32px, 5vw, 48px) clamp(24px, 4vw, 40px)",
+              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.4)",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            <i className="fa-solid fa-xmark" style={{ color: "#ffffff", fontSize: "2rem" }} />
-          </div>
+            {/* Ambient subtle glow */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                transform: "translateX(-50%)",
+                width: "80%",
+                height: 140,
+                background: "radial-gradient(ellipse at 50% 0%, rgba(248, 113, 113, 0.18) 0%, rgba(248, 113, 113, 0) 75%)",
+                pointerEvents: "none",
+              }}
+            />
 
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              fontFamily: "IBM Plex Mono, monospace",
-              fontSize: ".72rem",
-              fontWeight: 500,
-              letterSpacing: ".14em",
-              textTransform: "uppercase",
-              color: "#a82020",
-              background: "#fff3f3",
-              border: "1px solid #f5c6c6",
-              padding: "8px 16px",
-              borderRadius: "100px",
-              marginBottom: 16,
-            }}
-          >
-            <i className="fa-solid fa-triangle-exclamation" /> Payment Not Completed
-          </span>
+            <div style={{ textAlign: "center", position: "relative", zIndex: 2 }}>
+              {/* Icon */}
+              <div
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: "50%",
+                  background: "rgba(248, 113, 113, 0.12)",
+                  border: "1px solid rgba(248, 113, 113, 0.35)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 20px",
+                  boxShadow: "0 0 32px rgba(248, 113, 113, 0.25)",
+                }}
+              >
+                <AlertTriangle
+                  style={{
+                    width: 36,
+                    height: 36,
+                    color: "var(--error)",
+                  }}
+                />
+              </div>
 
-          <h1
-            style={{
-              fontFamily: "Inter, sans-serif",
-              fontSize: "clamp(1.6rem, 4vw, 2.2rem)",
-              color: "#08211a",
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              margin: "18px 0 14px",
-              lineHeight: 1.1,
-            }}
-          >
-            Payment Didn&apos;t Go Through
-          </h1>
+              {/* Eyebrow badge */}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "4px 14px",
+                  borderRadius: 9999,
+                  background: "var(--error-bg)",
+                  border: "1px solid var(--error-line)",
+                  color: "var(--error)",
+                  fontSize: 12,
+                  fontFamily: "var(--font-mono)",
+                  fontWeight: 600,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  marginBottom: 16,
+                }}
+              >
+                <span>Transaction Incomplete</span>
+              </div>
 
-          <p style={{ color: "#3f5c4d", marginBottom: 8, fontSize: "1.02rem" }}>
-            No amount was deducted. If any amount was charged, it will be auto-refunded
-            within 5–7 business days.
-          </p>
-          <p style={{ color: "#7c9488", marginBottom: 36, fontSize: ".92rem" }}>
-            You can try registering again — your details have been saved.
-          </p>
+              {/* Title */}
+              <h1
+                style={{
+                  fontSize: "clamp(1.8rem, 4vw, 2.4rem)",
+                  fontWeight: 800,
+                  letterSpacing: "-0.03em",
+                  color: "var(--ink)",
+                  margin: "0 0 14px",
+                  lineHeight: 1.15,
+                }}
+              >
+                Payment Didn&apos;t Go Through
+              </h1>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <Link href="/#registration" className="btn btn-primary" style={{ justifyContent: "center" }}>
-              <i className="fa-solid fa-rotate-right" />
-              <span>Try Again</span>
-            </Link>
-            <Link href="/" className="btn btn-ghost" style={{ justifyContent: "center" }}>
-              <i className="fa-solid fa-house" />
-              <span>Back to Home</span>
-            </Link>
+              {/* Subtitle */}
+              <p
+                style={{
+                  fontSize: "clamp(0.95rem, 2vw, 1.05rem)",
+                  color: "var(--ink-3)",
+                  maxWidth: 520,
+                  margin: "0 auto 28px",
+                  lineHeight: 1.6,
+                }}
+              >
+                The payment session was cancelled or timed out by the gateway. If any amount was deducted, your issuing bank will automatically refund it within 3–5 business days.
+              </p>
+
+              {/* Security info box */}
+              <div
+                style={{
+                  background: "var(--surface-2)",
+                  border: "1px solid var(--line-2)",
+                  borderRadius: 14,
+                  padding: "16px 20px",
+                  textAlign: "left",
+                  marginBottom: 28,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                }}
+              >
+                <ShieldAlert
+                  style={{
+                    width: 20,
+                    height: 20,
+                    color: "var(--error)",
+                    flexShrink: 0,
+                    marginTop: 2,
+                  }}
+                />
+                <div>
+                  <h4 style={{ margin: "0 0 4px", fontSize: 13.5, fontWeight: 600, color: "var(--ink)" }}>
+                    Your Registration Details Are Safe
+                  </h4>
+                  <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-3)", lineHeight: 1.5 }}>
+                    You can try registering again immediately. You can choose any UPI app (GPay, PhonePe, Paytm) or card at the gateway.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 14,
+                }}
+              >
+                <Link
+                  href="/#registration"
+                  className="nav-cta"
+                  style={{
+                    padding: "12px 28px",
+                    fontSize: 14,
+                    fontWeight: 600,
+                    borderRadius: 9999,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: "var(--accent)",
+                    color: "#ffffff",
+                    textDecoration: "none",
+                    boxShadow: "0 4px 18px rgba(22, 163, 107, 0.35)",
+                  }}
+                >
+                  <RotateCcw style={{ width: 16, height: 16 }} />
+                  <span>Retry Registration</span>
+                  <ArrowRight style={{ width: 15, height: 15 }} />
+                </Link>
+
+                <a
+                  href="mailto:mca@shctpt.edu"
+                  style={{
+                    padding: "12px 24px",
+                    fontSize: 13.5,
+                    fontWeight: 500,
+                    borderRadius: 9999,
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--line)",
+                    color: "var(--ink-2)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    textDecoration: "none",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <Mail style={{ width: 15, height: 15 }} />
+                  <span>Contact Support</span>
+                </a>
+
+                <Link
+                  href="/"
+                  style={{
+                    padding: "12px 20px",
+                    fontSize: 13.5,
+                    fontWeight: 500,
+                    borderRadius: 9999,
+                    background: "transparent",
+                    border: "1px solid var(--line)",
+                    color: "var(--ink-3)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    textDecoration: "none",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <Home style={{ width: 15, height: 15 }} />
+                  <span>Home</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </main>
 
+      {/* ── Footer ── */}
       <footer className="site-footer">
         <div className="footer-inner">
-          <div className="footer-brand">
-            <span className="footer-event">VORTEX NEOVIA<sup>&apos;27</sup></span>
-            <p className="footer-workshop">LLM Agents<br /><span>Concept, Tools and Applications</span></p>
+          <div className="footer-top-row">
+            <div className="footer-brand-col">
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
+                  <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                </div>
+                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
+                  <Image src="/department-logo.png" alt="Department of Computer Applications logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                </div>
+              </div>
+              <span
+                style={{
+                  fontWeight: 650,
+                  letterSpacing: "-0.02em",
+                  fontSize: 13.5,
+                  color: "var(--ink)",
+                  marginTop: 4,
+                }}
+              >
+                VORTEX NEOVIA &apos;27 • LLM Agents
+              </span>
+              <p style={{ fontSize: 12.5, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
+                Department of Computer Applications<br />
+                Sacred Heart College (Autonomous), Tirupattur
+              </p>
+            </div>
+
+            <div className="footer-links-grid">
+              <div>
+                <span className="footer-col-title">Navigation</span>
+                <ul className="footer-col-links">
+                  <li><Link href="/">Home</Link></li>
+                  <li><Link href="/#registration">Registration</Link></li>
+                  <li><Link href="/install">Setup Guide</Link></li>
+                </ul>
+              </div>
+
+              <div>
+                <span className="footer-col-title">Guidelines</span>
+                <ul className="footer-col-links">
+                  <li><Link href="/terms">Terms &amp; Conditions</Link></li>
+                  <li><Link href="/privacy">Privacy Policy</Link></li>
+                  <li><Link href="/refund-policy">Refund Policy</Link></li>
+                </ul>
+              </div>
+
+              <div>
+                <span className="footer-col-title">Help &amp; Inquiries</span>
+                <ul className="footer-col-links">
+                  <li><a href="mailto:mca@shctpt.edu">mca@shctpt.edu</a></li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div className="footer-org">
-            <p>Department of Computer Applications</p>
-            <p>Sacred Heart College</p>
+
+          <div className="footer-bottom-row">
+            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved.</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+              <Link href="/privacy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Privacy</Link>
+              <Link href="/refund-policy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Refunds</Link>
+              <Link href="/terms" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Terms</Link>
+            </div>
           </div>
-          <nav className="footer-nav" aria-label="Footer">
-            <Link href="/">Home</Link>
-            <Link href="/#registration">Registration</Link>
-          </nav>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2026 Department of Computer Applications. All Rights Reserved.</p>
-          <nav className="footer-legal" aria-label="Legal">
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/refund-policy">Refund Policy</Link>
-            <Link href="/terms">Terms of Service</Link>
-          </nav>
         </div>
       </footer>
     </>

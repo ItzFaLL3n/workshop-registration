@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import FloatingNavbar from "@/components/FloatingNavbar";
 
 export default function LegalPageLayout({
   title,
@@ -13,77 +14,142 @@ export default function LegalPageLayout({
 }) {
   return (
     <>
-      <header className="site-header" id="site-header" style={{ position: "sticky", top: 0 }}>
-        <div className="header-inner">
-          <div className="header-brand">
-            <div className="brand-logos">
-              <div className="logo-box">
-                <Image src="/college-logo.png" alt="Sacred Heart College" width={128} height={128} style={{ objectFit: "cover" }} />
-              </div>
-              <div className="logo-box">
-                <Image src="/department-logo.png" alt="Dept. of Computer Applications" width={128} height={128} style={{ objectFit: "cover" }} />
-              </div>
-            </div>
-            <div className="brand-text">
-              <span className="brand-college">Sacred Heart College</span>
-              <span className="brand-dept">Dept. of Computer Applications</span>
-            </div>
-          </div>
-          <nav className="main-nav" aria-label="Primary">
-            <ul>
-              <li><Link href="/" className="nav-link">← Back to Home</Link></li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <FloatingNavbar />
 
-      <main>
-        <section className="section">
-          <div className="section-inner" style={{ maxWidth: 760 }}>
-            <div className="section-head" style={{ textAlign: "left" }}>
-              <h1 className="section-title" style={{ fontSize: "clamp(1.7rem, 4vw, 2.3rem)" }}>{title}</h1>
-              <p className="section-lede" style={{ fontSize: ".88rem" }}>Last updated: {updated}</p>
-            </div>
-
-            <div
+      <main
+        style={{
+          minHeight: "calc(100vh - 70px)",
+          padding: "clamp(32px, 5vw, 64px) 20px 80px",
+          background: "radial-gradient(ellipse at 50% 10%, rgba(22, 163, 107, 0.06) 0%, rgba(9, 9, 11, 0) 70%)",
+        }}
+      >
+        <div style={{ maxWidth: 760, margin: "0 auto" }}>
+          {/* Header */}
+          <div style={{ marginBottom: 36 }}>
+            <Link
+              href="/"
               style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 24,
-                color: "#0c2a1d",
-                fontSize: ".98rem",
-                lineHeight: 1.7,
+                fontSize: 13,
+                fontFamily: "var(--font-mono)",
+                color: "var(--ink-4)",
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 16,
               }}
             >
-              {children}
-            </div>
+              ← Back to Home
+            </Link>
+            <h1
+              style={{
+                fontSize: "clamp(1.8rem, 4vw, 2.4rem)",
+                fontWeight: 800,
+                letterSpacing: "-0.03em",
+                color: "var(--ink)",
+                margin: "0 0 8px",
+              }}
+            >
+              {title}
+            </h1>
+            <p
+              style={{
+                fontSize: 12.5,
+                fontFamily: "var(--font-mono)",
+                color: "var(--ink-4)",
+                margin: 0,
+              }}
+            >
+              Last updated: {updated}
+            </p>
           </div>
-        </section>
+
+          {/* Body Card */}
+          <div
+            style={{
+              background: "var(--surface-1)",
+              border: "1px solid var(--line)",
+              borderRadius: 20,
+              padding: "clamp(24px, 4vw, 36px)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 24,
+              color: "var(--ink-2)",
+              fontSize: 14.5,
+              lineHeight: 1.7,
+            }}
+          >
+            {children}
+          </div>
+        </div>
       </main>
 
+      {/* ── Footer ── */}
       <footer className="site-footer">
         <div className="footer-inner">
-          <div className="footer-brand">
-            <span className="footer-event">VORTEX NEOVIA<sup>&apos;27</sup></span>
-            <p className="footer-workshop">LLM Agents<br /><span>Concept, Tools and Applications</span></p>
+          <div className="footer-top-row">
+            <div className="footer-brand-col">
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
+                  <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                </div>
+                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
+                  <Image src="/department-logo.png" alt="Department of Computer Applications logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                </div>
+              </div>
+              <span
+                style={{
+                  fontWeight: 650,
+                  letterSpacing: "-0.02em",
+                  fontSize: 13.5,
+                  color: "var(--ink)",
+                  marginTop: 4,
+                }}
+              >
+                VORTEX NEOVIA &apos;27 • LLM Agents
+              </span>
+              <p style={{ fontSize: 12.5, color: "var(--ink-3)", lineHeight: 1.6, margin: 0 }}>
+                Department of Computer Applications<br />
+                Sacred Heart College (Autonomous), Tirupattur
+              </p>
+            </div>
+
+            <div className="footer-links-grid">
+              <div>
+                <span className="footer-col-title">Navigation</span>
+                <ul className="footer-col-links">
+                  <li><Link href="/">Home</Link></li>
+                  <li><Link href="/install">Setup Guide</Link></li>
+                  <li><Link href="/resources">Resources</Link></li>
+                </ul>
+              </div>
+
+              <div>
+                <span className="footer-col-title">Guidelines</span>
+                <ul className="footer-col-links">
+                  <li><Link href="/terms">Terms &amp; Conditions</Link></li>
+                  <li><Link href="/privacy">Privacy Policy</Link></li>
+                  <li><Link href="/refund-policy">Refund Policy</Link></li>
+                </ul>
+              </div>
+
+              <div>
+                <span className="footer-col-title">Help &amp; Inquiries</span>
+                <ul className="footer-col-links">
+                  <li><a href="mailto:mca@shctpt.edu">mca@shctpt.edu</a></li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <div className="footer-org">
-            <p>Department of Computer Applications</p>
-            <p>Sacred Heart College</p>
+
+          <div className="footer-bottom-row">
+            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved.</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+              <Link href="/privacy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Privacy</Link>
+              <Link href="/refund-policy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Refunds</Link>
+              <Link href="/terms" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Terms</Link>
+            </div>
           </div>
-          <nav className="footer-nav" aria-label="Footer">
-            <Link href="/">Home</Link>
-            <Link href="/#registration">Registration</Link>
-            <Link href="/resources">Resources</Link>
-          </nav>
-        </div>
-        <div className="footer-bottom">
-          <p>&copy; 2026 Department of Computer Applications. All Rights Reserved.</p>
-          <nav className="footer-legal" aria-label="Legal">
-            <Link href="/privacy">Privacy Policy</Link>
-            <Link href="/refund-policy">Refund Policy</Link>
-            <Link href="/terms">Terms of Service</Link>
-          </nav>
         </div>
       </footer>
     </>
@@ -92,12 +158,21 @@ export default function LegalPageLayout({
 
 export function H2({ children }: { children: ReactNode }) {
   return (
-    <h2 style={{ fontFamily: "Inter, sans-serif", fontSize: "1.2rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#08211a", margin: 0 }}>
+    <h2
+      style={{
+        fontFamily: "var(--font-sans)",
+        fontSize: "1.15rem",
+        fontWeight: 700,
+        letterSpacing: "-0.01em",
+        color: "var(--ink)",
+        margin: 0,
+      }}
+    >
       {children}
     </h2>
   );
 }
 
 export function P({ children }: { children: ReactNode }) {
-  return <p style={{ margin: 0, color: "#3f5c4d" }}>{children}</p>;
+  return <p style={{ margin: 0, color: "var(--ink-3)" }}>{children}</p>;
 }
