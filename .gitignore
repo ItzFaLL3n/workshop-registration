@@ -19,6 +19,8 @@ dist/
 *.tsbuildinfo
 .impeccable/
 **/.impeccable/
+.claude/
+**/.claude/
 
 # SQLite local database
 *.db
