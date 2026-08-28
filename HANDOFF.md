@@ -7,26 +7,26 @@
 
 ---
 
-## Status: LIVE (Razorpay Test Mode)
+## Status: LIVE, pending one redeploy + one round of testing
 
-**Payment provider switched from Cashfree to Razorpay on 2026-08-28** — the user got KYC-verified on Razorpay and asked to migrate off Cashfree entirely. See `WHATFIXED.md` #13 for the full rundown of what changed. In short:
-
-- `backend/src/lib/cashfree.ts` → `backend/src/lib/razorpay.ts` (Orders API create + webhook signature verify)
-- `POST /register` now creates a Razorpay order and returns `razorpayOrderId`/`razorpayKeyId`/`amount`/`currency` instead of a Cashfree `paymentSessionId`
-- Frontend opens Razorpay's **Standard Checkout** (an in-page modal loaded via `checkout.js`) instead of redirecting the whole page to a Cashfree-hosted page
-- Webhook moved from `/webhook/cashfree` to `/webhook/razorpay`; DB columns `cfOrderId`/`cfPaymentId` renamed to `razorpayOrderId`/`razorpayPaymentId` (migration `20260828000000_switch_to_razorpay`)
-- `BACKEND_URL` and `NEXT_PUBLIC_CASHFREE_ENV` env vars are gone entirely — Razorpay doesn't need a per-order notify URL (webhook is configured once in their dashboard) or a sandbox/production URL split (Test vs Live Mode is just which key pair you use)
-- **Not yet done, and needed before this is usable at all**: register the actual webhook URL + get the webhook secret from the Razorpay dashboard, put real `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`/`RAZORPAY_WEBHOOK_SECRET` into `backend/.env` on the VM, redeploy (`git pull && docker compose up -d --build`), then run the full end-to-end test below with a Razorpay test card.
-
-Both halves of the stack are deployed and were confirmed talking to each other successfully as of 2026-08-15 (pre-Razorpay-switch):
+Both halves of the stack are deployed and were confirmed talking to each other successfully as of 2026-08-15, back when the payment provider was still Cashfree:
 
 - **Frontend:** `https://vortexneovia.netlify.app` — Netlify, deployed from `origin/master`, `frontend/` as base dir
-- **Backend:** `https://vortexneovia.centralindia.cloudapp.azure.com` — Azure VM (B2als_v2, Central India), Docker Compose, confirmed serving `/register` successfully (verified with a direct `curl` POST — got back a real `registrationId` + a payment session, back when this was still Cashfree)
+- **Backend:** `https://vortexneovia.centralindia.cloudapp.azure.com` — Azure VM (B2als_v2, Central India), Docker Compose
 - **Database:** Postgres running in the VM's Docker Compose stack, `Registration` table created via migrations
 
-**Not yet done:** Razorpay webhook URL registration in their dashboard (see above), a full end-to-end Test Mode payment test (register → pay → confirm DB flips to `PAID` → confirm email arrives), and the production go-live checklist. See "What's Left" below.
+**Since then, on 2026-08-28, two rounds of changes shipped that the VM has not been redeployed for yet:**
 
-**Also added on 2026-08-28 (same day, after the Razorpay switch): "Pay Cash at Event" + a registration-desk role.** Registrants can now pick cash instead of Razorpay at signup (reserves the seat, no online payment); a second shared password `REGISTRATION_TEAM_PASSWORD` logs into the same `/admin` page with a restricted view — sees everyone, can mark a cash row paid at check-in and add walk-ins, but can never touch a Razorpay-paid row (only the webhook can). Full rundown in `WHATFIXED.md` #14. **This needs `REGISTRATION_TEAM_PASSWORD` set in `backend/.env` on the VM before the next deploy, or the backend won't boot** (it's in the required env var list now).
+1. **Payment provider switched from Cashfree to Razorpay** (user got KYC-verified there and asked to migrate off Cashfree entirely — full rundown in `WHATFIXED.md` #13). `backend/src/lib/cashfree.ts` → `razorpay.ts`, webhook moved from `/webhook/cashfree` to `/webhook/razorpay`, DB columns `cfOrderId`/`cfPaymentId` renamed to `razorpayOrderId`/`razorpayPaymentId`, `BACKEND_URL` and `NEXT_PUBLIC_CASHFREE_ENV` env vars gone entirely. Frontend now opens Razorpay's **Standard Checkout** as an in-page modal instead of redirecting to a Cashfree-hosted page.
+2. **"Pay Cash at Event" + a registration-desk role** (`WHATFIXED.md` #14). Registrants can pick cash instead of Razorpay at signup (reserves the seat, no online payment); a second shared password `REGISTRATION_TEAM_PASSWORD` logs into the same `/admin` page with a restricted view — sees everyone, can mark a cash row paid at check-in and add walk-ins, but can never touch a Razorpay-paid row (only the webhook can).
+
+**Not yet done, and needed before any of this actually works on the live site:**
+- Register the Razorpay webhook + get the webhook secret from their dashboard (Test Mode for now)
+- Put `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` / `REGISTRATION_TEAM_PASSWORD` into `backend/.env` on the VM — all four are required now, **the backend will not boot without them**
+- `git pull && docker compose up -d --build` on the VM (applies two pending migrations)
+- Run through the full test list in "What's Left" below — none of this has been tested end-to-end on the live deployment yet
+
+See "What's Left" below for the exact steps.
 
 ---
 
@@ -38,7 +38,7 @@ Current real architecture:
 
 | Layer | Where | Notes |
 |---|---|---|
-| Frontend | **Netlify** | Free `*.netlify.app` subdomain. `netlify.toml` at repo root (`base = "frontend"`, `@netlify/plugin-nextjs` plugin). `NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_CASHFREE_ENV` are Netlify env vars (Site configuration → Environment variables), **not** in any repo file — changing them requires a redeploy since they're build-time vars. |
+| Frontend | **Netlify** | Free `*.netlify.app` subdomain. `netlify.toml` at repo root (`base = "frontend"`, `@netlify/plugin-nextjs` plugin). `NEXT_PUBLIC_API_URL` is the only frontend env var (Site configuration → Environment variables), **not** in any repo file — changing it requires a redeploy since it's a build-time var. The Razorpay key id is returned by `POST /register` per-request instead, so there's no payment-related frontend env var at all. |
 | Backend + Postgres + Caddy | **Azure VM** (Docker Compose) | `docker-compose.yml` now only has `postgres`, `backend`, `caddy` services — the `frontend` service was removed. `Caddyfile` proxies `{$DOMAIN}` straight to `backend:4000` (no more `api.` subdomain split, since there's no frontend to also route). |
 | Domain | **No custom domain purchased** | Both hostnames above are free: Netlify's subdomain, and Azure's free DNS name label on the VM's Public IP (Configuration → DNS name label). Caddy's Let's Encrypt cert issuance works fine against the Azure hostname — confirmed working in this session. |
 
@@ -103,12 +103,11 @@ If you're continuing this project and see references in `CLAUDE.md` to `api.your
 | Pay Cash at Event | Added 2026-08-28 (`WHATFIXED.md` #14). Registrants can pick cash instead of Razorpay; reserves the seat (`PENDING`+`CASH`, counted in the public counter immediately) until the registration desk confirms at check-in. A Razorpay row can never be manually flipped to `PAID` by anyone — only the webhook does that. |
 | Registration desk role | Second shared password `REGISTRATION_TEAM_PASSWORD`, same `/admin` page. Sees everything, can "Mark Paid" cash rows and "Add Walk-in" registrations, CSV export hidden. No per-person accounts — same tradeoff as the existing admin auth. |
 | VORTEX branding | Footer only — header shows college name only |
-| Form fields | Name, Email, Phone (required by Cashfree), College, Department, Year, Gender, Food Preference |
-| Registration counter | `GET /register/count` public endpoint — counts PAID rows only |
+| Form fields | Name, Email, Phone (required by Razorpay), College, Department, Year, Gender, Food Preference, Payment Method |
+| Registration counter | `GET /register/count` public endpoint — counts `PAID` rows (any method) plus `PENDING`+`CASH` reservations |
 | Pending row reuse | If same email re-registers with PENDING status, reuse that row instead of creating a new one |
 | Reduced motion | CSS `@media (prefers-reduced-motion)` kills all animations globally |
 | Fee | Controlled via `WORKSHOP_FEE_RUPEES` env var (backend) — confirm current value in `backend/.env` on the VM |
-| Admin auth | Single shared password via header, no per-user accounts — acceptable at this scale |
 | Express trust proxy | `app.set("trust proxy", 1)` — required because Caddy sits in front as a single reverse-proxy hop; without it `express-rate-limit` throws on every request (see `WHATFIXED.md` #10) |
 
 ---
