@@ -13,9 +13,27 @@ export interface RegisterPayload {
   year?: string;
   gender?: string;
   foodPreference?: string;
+  paymentMethod: "RAZORPAY" | "CASH";
 }
 
-export async function registerForWorkshop(payload: RegisterPayload) {
+export type RegisterResponse =
+  | {
+      registrationId: string;
+      paymentMethod: "CASH";
+    }
+  | {
+      registrationId: string;
+      paymentMethod: "RAZORPAY";
+      razorpayOrderId: string;
+      razorpayKeyId: string;
+      amount: number;
+      currency: string;
+      name: string;
+      email: string;
+      phone: string;
+    };
+
+export async function registerForWorkshop(payload: RegisterPayload): Promise<RegisterResponse> {
   const res = await fetch(`${API_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -23,16 +41,7 @@ export async function registerForWorkshop(payload: RegisterPayload) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Registration failed");
-  return data as {
-    registrationId: string;
-    razorpayOrderId: string;
-    razorpayKeyId: string;
-    amount: number;
-    currency: string;
-    name: string;
-    email: string;
-    phone: string;
-  };
+  return data as RegisterResponse;
 }
 
 export async function getRegistrationCount(): Promise<number> {

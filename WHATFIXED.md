@@ -1,6 +1,6 @@
 # What Fixed — Deployment Session Error Log
 
-**Date:** 2026-08-14/15 (entries 1-12), 2026-08-28 (entry 13)
+**Date:** 2026-08-14/15 (entries 1-12), 2026-08-28 (entries 13-14)
 **Context:** First live deployment of the site — Netlify (frontend) + Azure VM via Docker Compose (backend). This log exists so a future agent hitting a similar error doesn't have to re-diagnose from scratch. See `HANDOFF.md` for current architecture/status.
 
 ---
@@ -154,6 +154,24 @@ Then placed it at `backend/prisma/migrations/00000000000000_init/migration.sql` 
 **Not a Cashfree-specific bug, but worth knowing:** Razorpay has no sandbox-vs-production **URL** split — Test Mode and Live Mode use the same `api.razorpay.com` host, and which mode you're in is purely determined by which key pair (`rzp_test_...` vs `rzp_live_...`) you authenticate with. That removes the entire "forgot to flip an env flag" failure mode that Cashfree's `CASHFREE_ENV` had.
 
 **Still pending as of this write-up:** the actual Razorpay Test Mode webhook has not been registered in their dashboard yet, and `backend/.env` on the VM still needs real `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`/`RAZORPAY_WEBHOOK_SECRET` values before any of this can be tested end-to-end. See `HANDOFF.md` → "What's Left" for the exact next steps.
+
+---
+
+## 14. Feature: "Pay Cash at Event" + registration-desk role
+
+**Why:** Not a bug either — the user wanted a fallback for people who can't/won't pay online, plus a way for on-site check-in staff to handle that without giving them the full admin password.
+
+**What was added:**
+- `Registration.paymentMethod` enum column (`RAZORPAY` | `CASH`, default `RAZORPAY`), migration `20260828010000_add_cash_payment_method`.
+- `POST /register` accepts `paymentMethod: "CASH"` in the body. When set, it **skips Razorpay entirely** — no order is created — and the row is saved with `status: PENDING`, `paymentMethod: CASH` (that combination *is* the "reserved, will pay at the door" state). A cash-specific reservation email goes out (`sendCashReservationEmail` in `email.ts`) instead of the paid-confirmation one.
+- `GET /register/count` now counts `PAID` (any method) **plus** `PENDING`+`CASH` rows — a cash reservation counts toward the public number the moment it's made, not only once collected. This was a deliberate choice (asked the user, they picked "count immediately") — the tradeoff is a no-show inflates the number slightly until cleaned up post-event.
+- New shared password `REGISTRATION_TEAM_PASSWORD` for the check-in desk, alongside the existing `ADMIN_PASSWORD`. `backend/src/routes/admin.ts`'s auth was split into `requireStaffAuth` (accepts either password, tags the request with `req.role`) and `requireAdminAuth` (admin password only, used solely for the CSV export route — full-data dumps stay admin-only). `GET /admin/registrations` now returns `role` in its JSON so the frontend knows which UI to render.
+- `PATCH /admin/registrations/:id/mark-cash-paid` — flips a `CASH` row's status to `PAID` at check-in. **Rejects the request outright if the row's `paymentMethod` isn't `CASH`** — this applies to admin too, on purpose. A Razorpay row can only ever become `PAID` via the webhook; nobody gets a manual override button for those, which is exactly what keeps "who can touch a Razorpay payment" unambiguous.
+- `POST /admin/registrations/walk-in` — adds someone who never registered online. Created already `PAID` + `CASH` (cash is collected on the spot when the desk adds the row, so there's nothing left to confirm). Duplicate-email guard reuses the same rule as public registration.
+- Extracted registration-field validation (name/email/phone rules, length caps) out of `register.ts` into a shared `backend/src/lib/validation.ts` — `register.ts` and the new walk-in route both call it, so the rules can't drift apart between the two entry points.
+- Frontend: `RegistrationForm.tsx` gained a "Pay Online Now" / "Pay Cash at Event" radio choice; picking cash skips the Razorpay checkout modal and redirects straight to `/success?method=cash&order_id=wr_<id>`. `/success/page.tsx` shows different copy for that case (reservation language, "bring ₹150 cash" instead of "payment confirmed"). `/admin/page.tsx` gained a Method filter, a Payment Method column, a "Mark Paid" button (visible only on cash+pending rows), an "Add Walk-in" inline form, and a "Cash — Awaiting Check-in" KPI card; the CSV export button is hidden entirely when logged in as `team` rather than `admin`.
+
+**Not done / worth knowing:** the registration-team login has no per-person identity (it's one shared password, same tradeoff as `ADMIN_PASSWORD` already documented) — there's no record of *which* desk staff member marked a given row paid, only that someone with the team (or admin) password did, at whatever time `updatedAt` shows.
 
 ---
 

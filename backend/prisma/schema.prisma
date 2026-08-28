@@ -14,6 +14,15 @@ enum RegistrationStatus {
   EXPIRED
 }
 
+// RAZORPAY: paid online, status flips to PAID only via the webhook.
+// CASH: chosen "pay at event" at signup (status stays PENDING as a
+// reservation until the registration desk marks it paid at check-in) or
+// added directly by the desk as a walk-in (created already PAID).
+enum PaymentMethod {
+  RAZORPAY
+  CASH
+}
+
 model Registration {
   id            String              @id @default(cuid())
   name          String
@@ -25,6 +34,7 @@ model Registration {
   gender        String?
   foodPreference String?
   status        RegistrationStatus  @default(PENDING)
+  paymentMethod PaymentMethod       @default(RAZORPAY)
   amount        Int                 // in paise (e.g. 49900 = ₹499)
   razorpayOrderId   String?         @unique
   razorpayPaymentId String?

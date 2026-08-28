@@ -29,6 +29,7 @@ interface FormState {
   year: string;
   gender: string;
   foodPreference: string;
+  paymentMethod: "RAZORPAY" | "CASH";
 }
 
 interface FieldErrors {
@@ -64,6 +65,7 @@ export default function RegistrationForm() {
     year: "",
     gender: "",
     foodPreference: "",
+    paymentMethod: "RAZORPAY",
   });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
@@ -83,7 +85,7 @@ export default function RegistrationForm() {
     return e;
   }
 
-  function set(field: keyof FormState, value: string) {
+  function set(field: keyof FieldErrors, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   }
@@ -105,17 +107,26 @@ export default function RegistrationForm() {
 
     setLoading(true);
     try {
-      const { razorpayOrderId, razorpayKeyId, amount, currency, name, email, phone } =
-        await registerForWorkshop({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          phone: form.phone.replace(/\s+/g, ""),
-          college: form.college.trim(),
-          department: form.department.trim(),
-          year: form.year,
-          gender: form.gender,
-          foodPreference: form.foodPreference,
-        });
+      const result = await registerForWorkshop({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.replace(/\s+/g, ""),
+        college: form.college.trim(),
+        department: form.department.trim(),
+        year: form.year,
+        gender: form.gender,
+        foodPreference: form.foodPreference,
+        paymentMethod: form.paymentMethod,
+      });
+
+      if (result.paymentMethod === "CASH") {
+        // No payment gateway involved — the seat is reserved, cash is
+        // collected at the check-in desk on event day.
+        window.location.href = `/success?method=cash&order_id=wr_${result.registrationId}`;
+        return;
+      }
+
+      const { razorpayOrderId, razorpayKeyId, amount, currency, name, email, phone } = result;
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
@@ -323,6 +334,41 @@ export default function RegistrationForm() {
         </span>
       </div>
 
+      {/* Payment Method */}
+      <div className="form-row radio-row">
+        <fieldset className="radio-fieldset">
+          <legend>Payment</legend>
+          <div className="radio-group">
+            <label className="radio-pill">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="RAZORPAY"
+                checked={form.paymentMethod === "RAZORPAY"}
+                onChange={() => setForm((prev) => ({ ...prev, paymentMethod: "RAZORPAY" }))}
+              />
+              <span>Pay Online Now</span>
+            </label>
+            <label className="radio-pill">
+              <input
+                type="radio"
+                name="paymentMethod"
+                value="CASH"
+                checked={form.paymentMethod === "CASH"}
+                onChange={() => setForm((prev) => ({ ...prev, paymentMethod: "CASH" }))}
+              />
+              <span>Pay Cash at Event</span>
+            </label>
+          </div>
+        </fieldset>
+        {form.paymentMethod === "CASH" && (
+          <p style={{ display: "block", margin: "6px 0 0", fontSize: 12.5, color: "var(--ink-3)" }}>
+            Your seat is reserved now — bring ₹150 cash and a valid student/college ID to the
+            registration desk on event day.
+          </p>
+        )}
+      </div>
+
       {/* API Error */}
       {apiError && (
         <div className="alert-error" role="alert">
@@ -341,11 +387,11 @@ export default function RegistrationForm() {
         {loading ? (
           <>
             <i className="fa-solid fa-spinner fa-spin" />
-            <span>Opening payment…</span>
+            <span>{form.paymentMethod === "CASH" ? "Reserving your seat…" : "Opening payment…"}</span>
           </>
         ) : (
           <>
-            <span>Register &amp; Pay</span>
+            <span>{form.paymentMethod === "CASH" ? "Reserve My Seat" : "Register & Pay"}</span>
             <i className="fa-solid fa-arrow-right" />
           </>
         )}

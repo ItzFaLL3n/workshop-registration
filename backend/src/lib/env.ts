@@ -8,6 +8,7 @@ const REQUIRED_VARS = [
   "RAZORPAY_WEBHOOK_SECRET",
   "FRONTEND_URL",
   "ADMIN_PASSWORD",
+  "REGISTRATION_TEAM_PASSWORD",
   "RESEND_API_KEY",
 ] as const;
 
@@ -27,6 +28,7 @@ function loadEnv() {
     RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET!,
     FRONTEND_URL: process.env.FRONTEND_URL!,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD!,
+    REGISTRATION_TEAM_PASSWORD: process.env.REGISTRATION_TEAM_PASSWORD!,
     RESEND_API_KEY: process.env.RESEND_API_KEY!,
     EMAIL_FROM: process.env.EMAIL_FROM || "workshop@yourdomain.com",
     WORKSHOP_FEE_RUPEES: Number(process.env.WORKSHOP_FEE_RUPEES || 150),

@@ -24,6 +24,10 @@ import {
   Utensils,
   ArrowLeft,
   Filter,
+  Wallet,
+  UserPlus,
+  Banknote,
+  X,
 } from "lucide-react";
 
 const API_URL = getApiUrl();
@@ -39,13 +43,37 @@ interface Registration {
   gender: string | null;
   foodPreference: string | null;
   status: string;
+  paymentMethod: "RAZORPAY" | "CASH";
   createdAt: string;
 }
 
 interface AdminData {
   registrations: Registration[];
   counts: { status: string; _count: number }[];
+  role: "admin" | "team";
 }
+
+interface WalkInForm {
+  name: string;
+  email: string;
+  phone: string;
+  college: string;
+  department: string;
+  year: string;
+  gender: string;
+  foodPreference: string;
+}
+
+const EMPTY_WALK_IN: WalkInForm = {
+  name: "",
+  email: "",
+  phone: "",
+  college: "",
+  department: "",
+  year: "",
+  gender: "",
+  foodPreference: "",
+};
 
 export default function AdminPage() {
   const [token, setToken] = useState("");
@@ -54,7 +82,13 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState("ALL");
+  const [filterMethod, setFilterMethod] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [markingId, setMarkingId] = useState<string | null>(null);
+  const [showWalkIn, setShowWalkIn] = useState(false);
+  const [walkInForm, setWalkInForm] = useState<WalkInForm>(EMPTY_WALK_IN);
+  const [walkInError, setWalkInError] = useState<string | null>(null);
+  const [walkInSubmitting, setWalkInSubmitting] = useState(false);
 
   async function loadData() {
     if (!token) return;
@@ -100,27 +134,96 @@ export default function AdminPage() {
     }
   }
 
-  // Filtered registrations based on client-side search query
+  // Registration desk confirms a "pay at event" reservation was actually
+  // paid in cash at check-in. Backend rejects this for any Razorpay row,
+  // regardless of who's asking — the webhook is the only thing allowed to
+  // mark those PAID.
+  async function markCashPaid(id: string) {
+    if (!token) return;
+    setMarkingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/registrations/${id}/mark-cash-paid`, {
+        method: "PATCH",
+        headers: { "x-admin-token": token },
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body.error || "Could not mark this registration as paid.");
+        setMarkingId(null);
+        return;
+      }
+      await loadData();
+    } catch {
+      setError("Could not connect to the workshop registration backend.");
+    }
+    setMarkingId(null);
+  }
+
+  function setWalkInField(field: keyof WalkInForm, value: string) {
+    setWalkInForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  // Registration desk adds someone who never registered online. Cash is
+  // collected on the spot, so this is created already PAID server-side.
+  async function submitWalkIn(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token) return;
+    setWalkInSubmitting(true);
+    setWalkInError(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/registrations/walk-in`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify(walkInForm),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setWalkInError(body.error || "Could not add this registration.");
+        setWalkInSubmitting(false);
+        return;
+      }
+      setWalkInForm(EMPTY_WALK_IN);
+      setShowWalkIn(false);
+      await loadData();
+    } catch {
+      setWalkInError("Could not connect to the workshop registration backend.");
+    }
+    setWalkInSubmitting(false);
+  }
+
+  // Filtered registrations based on client-side search query + payment method
   const filteredRegistrations = useMemo(() => {
     if (!data?.registrations) return [];
-    if (!searchQuery.trim()) return data.registrations;
+    let rows = data.registrations;
+
+    if (filterMethod !== "ALL") {
+      rows = rows.filter((r) => r.paymentMethod === filterMethod);
+    }
 
     const q = searchQuery.toLowerCase().trim();
-    return data.registrations.filter((r) =>
-      r.name?.toLowerCase().includes(q) ||
-      r.email?.toLowerCase().includes(q) ||
-      r.phone?.toLowerCase().includes(q) ||
-      r.college?.toLowerCase().includes(q) ||
-      r.department?.toLowerCase().includes(q) ||
-      r.id?.toLowerCase().includes(q)
-    );
-  }, [data?.registrations, searchQuery]);
+    if (q) {
+      rows = rows.filter((r) =>
+        r.name?.toLowerCase().includes(q) ||
+        r.email?.toLowerCase().includes(q) ||
+        r.phone?.toLowerCase().includes(q) ||
+        r.college?.toLowerCase().includes(q) ||
+        r.department?.toLowerCase().includes(q) ||
+        r.id?.toLowerCase().includes(q)
+      );
+    }
+
+    return rows;
+  }, [data?.registrations, searchQuery, filterMethod]);
 
   // Aggregate metric stats
   const totalCount = data?.registrations.length || 0;
   const paidCount = data?.counts.find((c) => c.status === "PAID")?._count || 0;
   const pendingCount = data?.counts.find((c) => c.status === "PENDING")?._count || 0;
   const failedCount = data?.counts.find((c) => c.status === "FAILED")?._count || 0;
+  const cashPendingCount =
+    data?.registrations.filter((r) => r.paymentMethod === "CASH" && r.status === "PENDING").length || 0;
+  const isAdmin = data?.role === "admin";
 
   return (
     <div
@@ -197,6 +300,7 @@ export default function AdminPage() {
           </h1>
           <p className="mt-2 text-sm sm:text-base leading-relaxed" style={{ color: "var(--ink-3)" }}>
             Monitor participant registrations, filter verification statuses, and export live data.
+            Works with either the admin password or the registration desk password.
           </p>
         </div>
 
@@ -209,14 +313,14 @@ export default function AdminPage() {
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
-            {/* Admin Password Input */}
-            <div className="md:col-span-4 space-y-1.5">
+            {/* Access Key Input (admin or registration-team password) */}
+            <div className="md:col-span-3 space-y-1.5">
               <label
                 htmlFor="admin-pw"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
                 style={{ color: "var(--ink-3)" }}
               >
-                Admin Secret Key
+                Access Key
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -225,7 +329,7 @@ export default function AdminPage() {
                 <input
                   id="admin-pw"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter administrator password"
+                  placeholder="Admin or registration desk password"
                   autoComplete="current-password"
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
@@ -249,13 +353,13 @@ export default function AdminPage() {
             </div>
 
             {/* Status Filter */}
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-2 space-y-1.5">
               <label
                 htmlFor="admin-filter"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
                 style={{ color: "var(--ink-3)" }}
               >
-                Status Filter
+                Status
               </label>
               <div className="relative">
                 <select
@@ -269,9 +373,9 @@ export default function AdminPage() {
                     color: "var(--ink)",
                   }}
                 >
-                  <option value="ALL">All Statuses (Combined)</option>
+                  <option value="ALL">All Statuses</option>
                   <option value="PAID">PAID (Verified)</option>
-                  <option value="PENDING">PENDING (Awaiting confirmation)</option>
+                  <option value="PENDING">PENDING</option>
                   <option value="FAILED">FAILED / Expired</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -280,8 +384,39 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Payment Method Filter */}
+            <div className="md:col-span-2 space-y-1.5">
+              <label
+                htmlFor="admin-method-filter"
+                className="block text-xs font-mono uppercase tracking-wider font-semibold"
+                style={{ color: "var(--ink-3)" }}
+              >
+                Method
+              </label>
+              <div className="relative">
+                <select
+                  id="admin-method-filter"
+                  value={filterMethod}
+                  onChange={(e) => setFilterMethod(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all font-mono appearance-none cursor-pointer"
+                  style={{
+                    background: "var(--surface-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <option value="ALL">All Methods</option>
+                  <option value="RAZORPAY">Razorpay</option>
+                  <option value="CASH">Cash</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Wallet className="w-3.5 h-3.5" style={{ color: "var(--ink-4)" }} />
+                </div>
+              </div>
+            </div>
+
             {/* Action Buttons */}
-            <div className="md:col-span-5 flex items-center gap-2.5">
+            <div className="md:col-span-5 flex items-center flex-wrap gap-2.5">
               <button
                 onClick={loadData}
                 disabled={loading || !token}
@@ -295,7 +430,7 @@ export default function AdminPage() {
               </button>
 
               <button
-                onClick={downloadCsv}
+                onClick={() => setShowWalkIn((v) => !v)}
                 disabled={!token || !data}
                 className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border shadow-sm transition-all disabled:opacity-40 cursor-pointer"
                 style={{
@@ -303,13 +438,107 @@ export default function AdminPage() {
                   borderColor: "var(--line)",
                   color: "var(--ink-2)",
                 }}
-                title="Download CSV Spreadsheet"
+                title="Add a walk-in cash registration"
               >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Export CSV</span>
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden sm:inline">Add Walk-in</span>
               </button>
+
+              {isAdmin && (
+                <button
+                  onClick={downloadCsv}
+                  disabled={!token || !data}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border shadow-sm transition-all disabled:opacity-40 cursor-pointer"
+                  style={{
+                    background: "var(--surface-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink-2)",
+                  }}
+                  title="Download CSV Spreadsheet"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="hidden sm:inline">Export CSV</span>
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Walk-in Registration Form */}
+          {showWalkIn && (
+            <div
+              className="mt-5 p-4 sm:p-5 rounded-xl border"
+              style={{ background: "var(--surface-2)", borderColor: "var(--line)" }}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Banknote className="w-4 h-4" style={{ color: "var(--accent)" }} />
+                  <h3 className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                    Add Walk-in Registration (Cash — marked PAID immediately)
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowWalkIn(false)}
+                  style={{ color: "var(--ink-4)" }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <form onSubmit={submitWalkIn} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { field: "name" as const, placeholder: "Full name", type: "text", autoComplete: "name" },
+                  { field: "email" as const, placeholder: "Email address", type: "email", autoComplete: "email" },
+                  { field: "phone" as const, placeholder: "10-digit phone", type: "tel", autoComplete: "tel" },
+                  { field: "college" as const, placeholder: "College", type: "text", autoComplete: "organization" },
+                  { field: "department" as const, placeholder: "Department", type: "text" },
+                  { field: "year" as const, placeholder: "Year (e.g. 2nd Year)", type: "text" },
+                  { field: "gender" as const, placeholder: "Gender", type: "text" },
+                  { field: "foodPreference" as const, placeholder: "Food Preference", type: "text" },
+                ].map(({ field, placeholder, type, autoComplete }) => (
+                  <input
+                    key={field}
+                    type={type}
+                    placeholder={placeholder}
+                    autoComplete={autoComplete}
+                    value={walkInForm[field]}
+                    onChange={(e) => setWalkInField(field, e.target.value)}
+                    required={field === "name" || field === "email" || field === "phone"}
+                    className="px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all"
+                    style={{
+                      background: "var(--surface-1)",
+                      borderColor: "var(--line)",
+                      color: "var(--ink)",
+                    }}
+                  />
+                ))}
+
+                <button
+                  type="submit"
+                  disabled={walkInSubmitting}
+                  className="sm:col-span-2 lg:col-span-4 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                  style={{ background: "var(--accent)" }}
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>{walkInSubmitting ? "Adding…" : "Add & Mark Paid"}</span>
+                </button>
+              </form>
+
+              {walkInError && (
+                <div
+                  className="mt-3 p-3 rounded-xl border text-xs font-mono flex items-center gap-2.5"
+                  style={{
+                    background: "rgba(239, 68, 68, 0.08)",
+                    borderColor: "rgba(239, 68, 68, 0.3)",
+                    color: "#ef4444",
+                  }}
+                >
+                  <XCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{walkInError}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -331,7 +560,7 @@ export default function AdminPage() {
         {data && (
           <div className="space-y-6">
             {/* KPI Metric Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
               {/* Total Card */}
               <div
                 className="p-4 sm:p-5 rounded-2xl border shadow-sm flex items-center gap-4"
@@ -403,6 +632,24 @@ export default function AdminPage() {
                   </span>
                 </div>
               </div>
+
+              {/* Cash Pending Card */}
+              <div
+                className="p-4 sm:p-5 rounded-2xl border shadow-sm flex items-center gap-4"
+                style={{ background: "var(--surface-1)", borderColor: "var(--line)" }}
+              >
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-sky-500/10 text-sky-500">
+                  <Wallet className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-sky-500">
+                    {cashPendingCount}
+                  </span>
+                  <span className="block text-[11px] font-mono uppercase tracking-wider" style={{ color: "var(--ink-4)" }}>
+                    Cash — Awaiting Check-in
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Search and Table Container */}
@@ -455,8 +702,10 @@ export default function AdminPage() {
                       <th className="py-3 px-4 font-semibold">College &amp; Dept</th>
                       <th className="py-3 px-4 font-semibold">Year / Gender</th>
                       <th className="py-3 px-4 font-semibold">Food</th>
+                      <th className="py-3 px-4 font-semibold">Method</th>
                       <th className="py-3 px-4 font-semibold">Status</th>
                       <th className="py-3 px-4 font-semibold">Date</th>
+                      <th className="py-3 px-4 font-semibold">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: "var(--line)" }}>
@@ -514,6 +763,20 @@ export default function AdminPage() {
                           </span>
                         </td>
 
+                        {/* Payment Method Badge */}
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wide uppercase border ${
+                              r.paymentMethod === "CASH"
+                                ? "bg-sky-500/10 text-sky-500 border-sky-500/25"
+                                : "bg-violet-500/10 text-violet-500 border-violet-500/25"
+                            }`}
+                          >
+                            {r.paymentMethod === "CASH" ? <Wallet className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                            {r.paymentMethod === "CASH" ? "Cash" : "Razorpay"}
+                          </span>
+                        </td>
+
                         {/* Status Badge */}
                         <td className="py-3.5 px-4">
                           <span
@@ -540,13 +803,37 @@ export default function AdminPage() {
                             year: "numeric",
                           })}
                         </td>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 whitespace-nowrap">
+                          {r.paymentMethod === "CASH" && r.status === "PENDING" ? (
+                            <button
+                              onClick={() => markCashPaid(r.id)}
+                              disabled={markingId === r.id}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                              style={{
+                                background: "var(--accent-light)",
+                                borderColor: "var(--accent-line)",
+                                color: "var(--accent)",
+                              }}
+                              title="Confirm cash was collected at check-in"
+                            >
+                              <Banknote className="w-3.5 h-3.5" />
+                              <span>{markingId === r.id ? "Marking…" : "Mark Paid"}</span>
+                            </button>
+                          ) : (
+                            <span className="text-[11px] font-mono" style={{ color: "var(--ink-4)" }}>
+                              —
+                            </span>
+                          )}
+                        </td>
                       </tr>
                     ))}
 
                     {filteredRegistrations.length === 0 && (
                       <tr>
                         <td
-                          colSpan={7}
+                          colSpan={9}
                           className="py-12 text-center text-xs font-mono"
                           style={{ color: "var(--ink-4)" }}
                         >

@@ -68,7 +68,7 @@ npm install
 npm run dev              # http://localhost:3000
 ```
 
-Required backend env vars (validated at startup by `src/lib/env.ts` — missing any of these throws immediately instead of failing later with a cryptic error): `DATABASE_URL`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `FRONTEND_URL`, `ADMIN_PASSWORD`, `RESEND_API_KEY`. Optional: `EMAIL_FROM`, `WORKSHOP_FEE_RUPEES` (defaults 150), `PORT` (defaults 4000). Unlike Cashfree, Razorpay has no separate sandbox/production URL — Test Mode vs Live Mode is just which key pair (`rzp_test_...` vs `rzp_live_...`) you use, so there's no `RAZORPAY_ENV`-style flag and `BACKEND_URL` is no longer needed (Razorpay's webhook URL is configured once in their dashboard, not per-order).
+Required backend env vars (validated at startup by `src/lib/env.ts` — missing any of these throws immediately instead of failing later with a cryptic error): `DATABASE_URL`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `FRONTEND_URL`, `ADMIN_PASSWORD`, `REGISTRATION_TEAM_PASSWORD`, `RESEND_API_KEY`. Optional: `EMAIL_FROM`, `WORKSHOP_FEE_RUPEES` (defaults 150), `PORT` (defaults 4000). Unlike Cashfree, Razorpay has no separate sandbox/production URL — Test Mode vs Live Mode is just which key pair (`rzp_test_...` vs `rzp_live_...`) you use, so there's no `RAZORPAY_ENV`-style flag and `BACKEND_URL` is no longer needed (Razorpay's webhook URL is configured once in their dashboard, not per-order).
 
 Frontend: `NEXT_PUBLIC_API_URL` — the only required frontend env var now. The Razorpay key id is returned by `POST /register` per-request rather than baked into the frontend build, so there's no `NEXT_PUBLIC_RAZORPAY_*` build-time var to keep in sync.
 
@@ -133,8 +133,11 @@ Don't spend the student credit on anything beyond this VM unless a real need com
 
 | Decision | Detail |
 |---|---|
-| Registration counter | `GET /register/count` — counts `PAID` rows only |
+| Registration counter | `GET /register/count` — counts `PAID` rows (any method) plus `CASH` rows still `PENDING` (a cash reservation counts as soon as it's made, not only once collected — see "Pay Cash at Event" below) |
 | Pending row reuse | Same email re-registering while `PENDING` reuses that row instead of creating a new one |
 | Fee | `WORKSHOP_FEE_RUPEES` env var, stored in paise in the DB |
-| Admin auth | Single shared password via `x-admin-token` header — fine at this scale, not a full auth system |
-| No git repo | This project has no version control initialized (by choice, as of this session) |
+| Admin auth | Two shared passwords via `x-admin-token` header — `ADMIN_PASSWORD` (full access) and `REGISTRATION_TEAM_PASSWORD` (check-in desk, see below). No per-user accounts — fine at this scale. |
+| Pay Cash at Event | Registrants can pick "Pay Cash at Event" instead of Razorpay at signup — `paymentMethod: CASH` on the row, status stays `PENDING` as a reservation (counted in the public counter immediately) until the registration desk confirms cash was collected at check-in via `PATCH /admin/registrations/:id/mark-cash-paid`. That endpoint — and everyone, admin included — can **never** mark a `RAZORPAY` row `PAID` this way; only the webhook does that. |
+| Registration desk role | Logs into the same `/admin` page with `REGISTRATION_TEAM_PASSWORD` instead of `ADMIN_PASSWORD`. Can see every registration and use "Mark Paid" / "Add Walk-in", but the CSV export button is hidden (admin-only). `GET /admin/registrations` returns a `role` field so the frontend knows which UI to show. |
+| Walk-in registrations | `POST /admin/registrations/walk-in` (admin or team) — for someone who never registered online; created already `PAID` + `CASH` since the desk collects cash on the spot, no separate confirmation step. |
+| No git repo | This project has no version control initialized (by choice, as of this session) — now superseded, the repo is git-tracked and pushed to GitHub (`ItzFaLL3n/workshop-registration`). |

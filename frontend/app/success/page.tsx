@@ -25,11 +25,13 @@ import FloatingNavbar from "@/components/FloatingNavbar";
 interface SuccessPageProps {
   searchParams?: {
     order_id?: string;
+    method?: string;
   };
 }
 
 export default function SuccessPage({ searchParams }: SuccessPageProps) {
   const orderId = searchParams?.order_id || "VN27-CONFIRMED";
+  const isCash = searchParams?.method === "cash";
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -138,7 +140,7 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
                 }}
               >
                 <Sparkles style={{ width: 14, height: 14 }} />
-                <span>Payment Confirmed · Seat Reserved</span>
+                <span>{isCash ? "Seat Reserved · Pay Cash at Check-in" : "Payment Confirmed · Seat Reserved"}</span>
               </div>
 
               {/* Title */}
@@ -152,7 +154,7 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
                   lineHeight: 1.15,
                 }}
               >
-                You&apos;re Registered! 🎉
+                {isCash ? "Seat Reserved! 🎉" : "You're Registered! 🎉"}
               </h1>
 
               {/* Subtitle */}
@@ -165,7 +167,18 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
                   lineHeight: 1.6,
                 }}
               >
-                Welcome to <strong>Vortex Neovia &apos;27</strong>: LLM Agents Workshop. Your transaction has been verified and your delegate pass is officially reserved.
+                {isCash ? (
+                  <>
+                    Welcome to <strong>Vortex Neovia &apos;27</strong>: LLM Agents Workshop. Your seat is reserved —
+                    bring <strong>₹150 in cash</strong> and a valid student/college ID to the registration desk on
+                    event day to complete your registration.
+                  </>
+                ) : (
+                  <>
+                    Welcome to <strong>Vortex Neovia &apos;27</strong>: LLM Agents Workshop. Your transaction has been
+                    verified and your delegate pass is officially reserved.
+                  </>
+                )}
               </p>
 
               {/* ── Prominent Order ID Card ── */}
@@ -204,7 +217,7 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
                         marginBottom: 4,
                       }}
                     >
-                      Official Order &amp; Reference ID
+                      {isCash ? "Reservation Reference ID" : "Official Order & Reference ID"}
                     </span>
                     <span
                       style={{
@@ -282,7 +295,19 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
                       lineHeight: 1.5,
                     }}
                   >
-                    <strong>Keep this for your records:</strong> Please screenshot or save your Order ID. You will need to show this ID along with your valid Student/College ID card at the verification desk on event day.
+                    {isCash ? (
+                      <>
+                        <strong>Keep this for your records:</strong> Please screenshot or save your Reservation ID.
+                        Bring it along with <strong>₹150 in cash</strong> and your valid Student/College ID card to
+                        the registration desk on event day to complete check-in.
+                      </>
+                    ) : (
+                      <>
+                        <strong>Keep this for your records:</strong> Please screenshot or save your Order ID. You will
+                        need to show this ID along with your valid Student/College ID card at the verification desk
+                        on event day.
+                      </>
+                    )}
                   </p>
                 </div>
               </div>
@@ -509,7 +534,9 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
                     Check your Email Inbox
                   </h4>
                   <p style={{ margin: 0, fontSize: 13, color: "var(--ink-3)", lineHeight: 1.5 }}>
-                    Your payment receipt and registration details have been sent. Check spam or promotions folder if not visible within 5 minutes.
+                    {isCash
+                      ? "Your reservation details and cash payment instructions have been sent. Check spam or promotions folder if not visible within 5 minutes."
+                      : "Your payment receipt and registration details have been sent. Check spam or promotions folder if not visible within 5 minutes."}
                   </p>
                 </div>
               </div>

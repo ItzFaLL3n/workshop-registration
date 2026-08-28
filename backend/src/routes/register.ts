@@ -2,12 +2,13 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { prisma } from "../lib/prisma.js";
 import { createRazorpayOrder } from "../lib/razorpay.js";
+import { validateRegistrationInput } from "../lib/validation.js";
+import { sendCashReservationEmail } from "../lib/email.js";
 import { env } from "../lib/env.js";
 
 export const registerRouter = Router();
 
 const WORKSHOP_FEE_RUPEES = env.WORKSHOP_FEE_RUPEES;
-const MAX_FIELD_LENGTH = 150;
 
 // Registration triggers a Razorpay order call per request, so cap submission
 // rate to deter spam/abuse rather than just accidental double-clicks.
@@ -20,12 +21,18 @@ const registerLimiter = rateLimit({
 
 // ──────────────────────────────────────────────
 //  GET /register/count  — public, no auth
-//  Returns the number of PAID registrations.
-//  Used by the frontend hero and form counters.
+//  Returns the number of confirmed-or-reserved registrations: PAID
+//  (any method) plus cash reservations still awaiting check-in. Those
+//  count immediately because the seat is considered held as soon as
+//  someone commits to "pay at event" — see WHATFIXED.md #14.
 // ──────────────────────────────────────────────
 registerRouter.get("/register/count", async (_req, res) => {
   try {
-    const count = await prisma.registration.count({ where: { status: "PAID" } });
+    const count = await prisma.registration.count({
+      where: {
+        OR: [{ status: "PAID" }, { status: "PENDING", paymentMethod: "CASH" }],
+      },
+    });
     res.json({ count });
   } catch (err) {
     console.error(err);
@@ -38,40 +45,14 @@ registerRouter.get("/register/count", async (_req, res) => {
 // ──────────────────────────────────────────────
 registerRouter.post("/register", registerLimiter, async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      phone,
-      college,
-      department,
-      year,
-      gender,
-      foodPreference,
-    } = req.body;
-
-    // ── Basic validation ──
-    if (!name || !email || !phone) {
-      return res
-        .status(400)
-        .json({ error: "Name, email, and phone are required." });
+    const validated = validateRegistrationInput(req.body);
+    if ("error" in validated) {
+      return res.status(400).json({ error: validated.error });
     }
+    const { name, email, phone, college, department, year, gender, foodPreference } =
+      validated.data;
 
-    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRx.test(email)) {
-      return res.status(400).json({ error: "Please provide a valid email address." });
-    }
-
-    const phoneNorm = String(phone).replace(/\s+/g, "");
-    if (!/^[6-9]\d{9}$/.test(phoneNorm)) {
-      return res.status(400).json({ error: "Please provide a valid 10-digit Indian mobile number." });
-    }
-
-    const tooLong = [name, college, department].some(
-      (v) => typeof v === "string" && v.length > MAX_FIELD_LENGTH
-    );
-    if (tooLong) {
-      return res.status(400).json({ error: `Name, college, and department must be under ${MAX_FIELD_LENGTH} characters.` });
-    }
+    const paymentMethod = req.body.paymentMethod === "CASH" ? "CASH" : "RAZORPAY";
 
     // ── Duplicate guard ──
     const existing = await prisma.registration.findFirst({
@@ -84,24 +65,42 @@ registerRouter.post("/register", registerLimiter, async (req, res) => {
         .json({ error: "This email has already registered and paid. Check your inbox for the confirmation." });
     }
 
-    // Re-use a pending row (e.g. user hit back after a failed payment)
+    // Re-use a pending row (e.g. user hit back after a failed payment, or
+    // is switching between "pay online" and "pay cash" before completing
+    // either one) instead of creating a new one. Only paymentMethod needs
+    // updating on reuse — the rest of the row is left as originally
+    // submitted, same as before this feature existed.
     const registration = existing
-      ? existing
+      ? existing.paymentMethod === paymentMethod
+        ? existing
+        : await prisma.registration.update({
+            where: { id: existing.id },
+            data: { paymentMethod },
+          })
       : await prisma.registration.create({
           data: {
             name,
             email,
-            phone: phoneNorm,
+            phone,
             college,
             department,
             year,
             gender,
             foodPreference,
+            paymentMethod,
             amount: WORKSHOP_FEE_RUPEES * 100, // stored in paise
           },
         });
 
-    // ── Create Razorpay order ──
+    // ── Pay cash at event: reserve the seat, no Razorpay order at all ──
+    if (paymentMethod === "CASH") {
+      await sendCashReservationEmail(email, name, WORKSHOP_FEE_RUPEES).catch((e) =>
+        console.error("Cash reservation email failed:", e)
+      );
+      return res.json({ registrationId: registration.id, paymentMethod: "CASH" });
+    }
+
+    // ── Pay online: create Razorpay order ──
     // Note: unlike Cashfree, Razorpay orders don't take a return/notify URL —
     // the webhook endpoint is configured once in the Razorpay dashboard, not
     // per order, so there's no BACKEND_URL/scheme footgun here.
@@ -118,13 +117,14 @@ registerRouter.post("/register", registerLimiter, async (req, res) => {
 
     res.json({
       registrationId: registration.id,
+      paymentMethod: "RAZORPAY",
       razorpayOrderId: order.id,
       razorpayKeyId: env.RAZORPAY_KEY_ID,
       amount: order.amount,
       currency: order.currency,
       name,
       email,
-      phone: phoneNorm,
+      phone,
     });
   } catch (err) {
     console.error(err);
