@@ -1,6 +1,6 @@
 # What Fixed — Deployment Session Error Log
 
-**Date:** 2026-08-14/15
+**Date:** 2026-08-14/15 (entries 1-12), 2026-08-28 (entry 13)
 **Context:** First live deployment of the site — Netlify (frontend) + Azure VM via Docker Compose (backend). This log exists so a future agent hitting a similar error doesn't have to re-diagnose from scratch. See `HANDOFF.md` for current architecture/status.
 
 ---
@@ -132,6 +132,28 @@ Then placed it at `backend/prisma/migrations/00000000000000_init/migration.sql` 
 **Cause:** `FRONTEND_URL` in `backend/.env` had a trailing slash (`https://vortexneovia.netlify.app/`). The backend's `cors({ origin: env.FRONTEND_URL })` (in `index.ts`) does an exact string match against the browser's `Origin` header, which **never** includes a trailing slash. One extra character = CORS failure on every request, no partial-match leniency.
 
 **Fix:** Removed the trailing slash from `FRONTEND_URL` in `backend/.env`, rebuild. **General rule:** never put a trailing slash on `FRONTEND_URL`/origin-style env vars in this codebase.
+
+---
+
+## 13. Payment provider swapped: Cashfree → Razorpay
+
+**Why:** Not a bug — the user got KYC-verified on Razorpay and asked to migrate off Cashfree entirely, so this is a full provider replacement rather than a fix.
+
+**What changed:**
+- `backend/src/lib/cashfree.ts` deleted, replaced by `backend/src/lib/razorpay.ts` — same shape (a `createXOrder()` + a `verifyXWebhook()`), different API:
+  - Order creation: `POST https://api.razorpay.com/v1/orders`, HTTP Basic Auth (`key_id:key_secret` base64), body is `{ amount (paise), currency, receipt, notes }` — no `return_url`/`notify_url` in the request at all, since Razorpay's webhook is configured once in their dashboard rather than per-order. This alone eliminates the entire class of bug that #11 was (a malformed per-order notify URL).
+  - Webhook signature: `hex(HMAC_SHA256(rawBody, webhook_secret))` compared against the `x-razorpay-signature` header — simpler than Cashfree's (no timestamp concatenation, hex not base64). The webhook secret is a **third** credential distinct from the key id/secret pair, generated when you add the webhook URL in the dashboard.
+- `backend/src/routes/register.ts`: creates a Razorpay order with `receipt: wr_<registrationId>`, stores the returned `order.id` (e.g. `order_xxx`) as `razorpayOrderId`, and returns `razorpayOrderId` + `razorpayKeyId` + `amount` + `currency` to the frontend (instead of Cashfree's `paymentSessionId`). Returning the key id per-request means the frontend needs **zero** payment-related env vars — one less thing to keep in sync across a Netlify rebuild.
+- `backend/src/routes/webhook.ts` + `index.ts`: route moved from `/webhook/cashfree` to `/webhook/razorpay`. Payload shape is `{ event: "payment.captured" | "payment.failed" | ..., payload: { payment: { entity: { id, order_id, ... } } } }` — registration is looked up by `razorpayOrderId` (a DB column) rather than by decoding an id embedded in a Cashfree-style `order_id` string. Same idempotency/out-of-order guarantees preserved (only acts on the transition into `PAID`; a `payment.failed` can't downgrade an already-`PAID` row).
+- `backend/prisma/schema.prisma` + a new migration (`20260828000000_switch_to_razorpay`): renamed columns `cfOrderId`/`cfPaymentId` → `razorpayOrderId`/`razorpayPaymentId`. Generated via `prisma migrate diff --from-schema-datamodel <old-schema-snapshot> --to-schema-datamodel prisma/schema.prisma --script` (no live DB needed — same technique as fix #9), which produced a DROP+ADD rather than a true `RENAME COLUMN`. That's fine here since no real payment data exists yet (still Test Mode); it would need hand-editing to a `RENAME COLUMN` if this ever needs to run against a DB with real Cashfree-era rows worth preserving.
+- `backend/src/lib/env.ts`: `CASHFREE_CLIENT_ID`/`CASHFREE_CLIENT_SECRET`/`CASHFREE_ENV` → `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`/`RAZORPAY_WEBHOOK_SECRET`. `BACKEND_URL` removed entirely — it existed only to build Cashfree's per-order `notify_url`.
+- `frontend/components/RegistrationForm.tsx`: dropped the `@cashfreepayments/cashfree-js` npm SDK and the full-page redirect (`cashfree.checkout({ redirectTarget: "_self" })`); now dynamically injects `https://checkout.razorpay.com/v1/checkout.js` and opens Razorpay's **Standard Checkout** as an in-page modal (`new window.Razorpay({...}).open()`). On success the `handler` callback client-side-redirects to `/success?order_id=...` for immediate UX — same as before, **the webhook remains the sole source of truth** for flipping the DB row to `PAID`, the client redirect is cosmetic only.
+- Removed `@cashfreepayments/cashfree-js` from `frontend/package.json`, deleted `frontend/types/cashfree.d.ts`, removed `NEXT_PUBLIC_CASHFREE_ENV` from `frontend/.env.local.example` and the `ARG`/`ENV` in `frontend/Dockerfile` (that Dockerfile is currently unused since frontend is on Netlify, but kept consistent per the same reasoning as fix #2).
+- Updated user-facing legal copy that named Cashfree by name: `frontend/app/terms/page.tsx`, `privacy/page.tsx`, `refund-policy/page.tsx`, `page.tsx` (homepage checklist).
+
+**Not a Cashfree-specific bug, but worth knowing:** Razorpay has no sandbox-vs-production **URL** split — Test Mode and Live Mode use the same `api.razorpay.com` host, and which mode you're in is purely determined by which key pair (`rzp_test_...` vs `rzp_live_...`) you authenticate with. That removes the entire "forgot to flip an env flag" failure mode that Cashfree's `CASHFREE_ENV` had.
+
+**Still pending as of this write-up:** the actual Razorpay Test Mode webhook has not been registered in their dashboard yet, and `backend/.env` on the VM still needs real `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`/`RAZORPAY_WEBHOOK_SECRET` values before any of this can be tested end-to-end. See `HANDOFF.md` → "What's Left" for the exact next steps.
 
 ---
 

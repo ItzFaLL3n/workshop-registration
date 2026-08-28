@@ -1,8 +1,24 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { load } from "@cashfreepayments/cashfree-js";
 import { registerForWorkshop } from "@/lib/api";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
 
 interface FormState {
   name: string;
@@ -89,28 +105,49 @@ export default function RegistrationForm() {
 
     setLoading(true);
     try {
-      const { paymentSessionId } = await registerForWorkshop({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.replace(/\s+/g, ""),
-        college: form.college.trim(),
-        department: form.department.trim(),
-        year: form.year,
-        gender: form.gender,
-        foodPreference: form.foodPreference,
+      const { razorpayOrderId, razorpayKeyId, amount, currency, name, email, phone } =
+        await registerForWorkshop({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.replace(/\s+/g, ""),
+          college: form.college.trim(),
+          department: form.department.trim(),
+          year: form.year,
+          gender: form.gender,
+          foodPreference: form.foodPreference,
+        });
+
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        throw new Error("Could not load the payment gateway. Check your connection and try again.");
+      }
+
+      const razorpay = new window.Razorpay({
+        key: razorpayKeyId,
+        amount,
+        currency,
+        order_id: razorpayOrderId,
+        name: "VORTEX NEOVIA '27",
+        description: "LLM Agents Workshop Registration",
+        prefill: { name, email, contact: phone },
+        theme: { color: "#1a8a54" },
+        handler: () => {
+          // Webhook is the source of truth for flipping status to PAID —
+          // this redirect is just immediate UX, mirroring what Cashfree's
+          // return_url used to do.
+          window.location.href = `/success?order_id=${razorpayOrderId}`;
+        },
+        modal: {
+          ondismiss: () => setLoading(false),
+        },
       });
 
-      const cashfree = await load({
-        mode:
-          process.env.NEXT_PUBLIC_CASHFREE_ENV === "production"
-            ? "production"
-            : "sandbox",
+      razorpay.on("payment.failed", () => {
+        setApiError("Payment failed. Please try again.");
+        setLoading(false);
       });
 
-      await cashfree.checkout({
-        paymentSessionId,
-        redirectTarget: "_self",
-      });
+      razorpay.open();
     } catch (err: any) {
       setApiError(err.message || "Something went wrong. Please try again.");
       setLoading(false);
@@ -304,7 +341,7 @@ export default function RegistrationForm() {
         {loading ? (
           <>
             <i className="fa-solid fa-spinner fa-spin" />
-            <span>Redirecting to payment…</span>
+            <span>Opening payment…</span>
           </>
         ) : (
           <>

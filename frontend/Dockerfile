@@ -8,9 +8,7 @@ COPY . .
 # they must be passed as build args (docker-compose.yml supplies these),
 # not just runtime environment variables.
 ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_CASHFREE_ENV
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_CASHFREE_ENV=$NEXT_PUBLIC_CASHFREE_ENV
 
 RUN npm run build
 

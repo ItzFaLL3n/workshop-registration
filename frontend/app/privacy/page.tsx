@@ -54,7 +54,7 @@ export default function PrivacyPage() {
       <div>
         <H2>3. Third Parties We Share Data With</H2>
         <P>
-          Payment processing is handled by <strong>Cashfree Payments</strong>, which receives the
+          Payment processing is handled by <strong>Razorpay</strong>, which receives the
           details necessary to process your transaction (name, email, phone, and payment amount).
           Confirmation emails are sent via <strong>Resend</strong>. Neither party uses your data
           for any purpose beyond providing their service to us. We do not share your information

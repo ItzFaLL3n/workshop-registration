@@ -4,7 +4,7 @@ Persistent context for Claude Code sessions on this repo. Read this first.
 
 ## What this is
 
-Registration + payment site for **VORTEX NEOVIA'27** (LLM Agents Workshop), Sacred Heart College, Dept. of Computer Applications. Student fills a form → backend creates a Cashfree order → Cashfree checkout → webhook flips the DB row to `PAID` and emails a confirmation. Admin can view/filter registrations and export CSV.
+Registration + payment site for **VORTEX NEOVIA'27** (LLM Agents Workshop), Sacred Heart College, Dept. of Computer Applications. Student fills a form → backend creates a Razorpay order → Razorpay checkout (modal) → webhook flips the DB row to `PAID` and emails a confirmation. Admin can view/filter registrations and export CSV.
 
 Scale: **fee is ₹150, ~400 registrations expected at most (could be fewer), not concurrent.** No hard cap is enforced in code — registration stays open-ended; closing it is a manual/operational decision, not an automatic cutoff. Don't add scaling/queueing/caching machinery — it's unneeded complexity for this load (likely well under ~₹60,000 total processed). Event runs over **2-3 days** and the top priority is uptime during that window, not raw scale.
 
@@ -15,7 +15,7 @@ Scale: **fee is ₹150, ~400 registrations expected at most (could be fewer), no
 | Frontend | Next.js 14.2.35 (App Router, TypeScript, Tailwind CSS) |
 | Backend | Node.js + Express + Prisma |
 | Database | PostgreSQL |
-| Payments | Cashfree Orders API (sandbox → production) |
+| Payments | Razorpay Orders API + Standard Checkout (Test Mode → Live Mode) |
 | Email | Resend |
 
 ## File map
@@ -28,11 +28,11 @@ backend/
       env.ts             Validates required env vars at startup, fails fast if missing
       asyncHandler.ts     Wraps async route handlers so rejections reach the error handler
       prisma.ts           Singleton Prisma client
-      cashfree.ts          createCashfreeOrder() + verifyCashfreeWebhook()
+      razorpay.ts          createRazorpayOrder() + verifyRazorpayWebhook()
       email.ts             sendConfirmationEmail() via Resend
     routes/
       register.ts   POST /register (rate-limited), GET /register/count (public)
-      webhook.ts    POST /webhook/cashfree — signature-verified, idempotent on PAID transition
+      webhook.ts    POST /webhook/razorpay — signature-verified, idempotent on PAID transition
       admin.ts      GET /admin/registrations, /admin/registrations.csv (password + rate-limited)
   prisma/schema.prisma   Registration model
   Dockerfile
@@ -56,7 +56,7 @@ Caddyfile
 ```bash
 # backend
 cd backend
-cp .env.example .env   # fill in DATABASE_URL, Cashfree sandbox keys, etc.
+cp .env.example .env   # fill in DATABASE_URL, Razorpay test keys, etc.
 npm install
 npx prisma migrate dev
 npm run dev             # http://localhost:4000
@@ -68,15 +68,15 @@ npm install
 npm run dev              # http://localhost:3000
 ```
 
-Required backend env vars (validated at startup by `src/lib/env.ts` — missing any of these throws immediately instead of failing later with a cryptic error): `DATABASE_URL`, `CASHFREE_CLIENT_ID`, `CASHFREE_CLIENT_SECRET`, `FRONTEND_URL`, `BACKEND_URL`, `ADMIN_PASSWORD`, `RESEND_API_KEY`. Optional: `CASHFREE_ENV` (defaults sandbox), `EMAIL_FROM`, `WORKSHOP_FEE_RUPEES` (defaults 150), `PORT` (defaults 4000).
+Required backend env vars (validated at startup by `src/lib/env.ts` — missing any of these throws immediately instead of failing later with a cryptic error): `DATABASE_URL`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `FRONTEND_URL`, `ADMIN_PASSWORD`, `RESEND_API_KEY`. Optional: `EMAIL_FROM`, `WORKSHOP_FEE_RUPEES` (defaults 150), `PORT` (defaults 4000). Unlike Cashfree, Razorpay has no separate sandbox/production URL — Test Mode vs Live Mode is just which key pair (`rzp_test_...` vs `rzp_live_...`) you use, so there's no `RAZORPAY_ENV`-style flag and `BACKEND_URL` is no longer needed (Razorpay's webhook URL is configured once in their dashboard, not per-order).
 
-Frontend: `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_CASHFREE_ENV` — these are **build-time** vars (inlined into the client bundle), so changing them requires a rebuild, not just a restart.
+Frontend: `NEXT_PUBLIC_API_URL` — the only required frontend env var now. The Razorpay key id is returned by `POST /register` per-request rather than baked into the frontend build, so there's no `NEXT_PUBLIC_RAZORPAY_*` build-time var to keep in sync.
 
 ## Hardening done this session (2026-08-14)
 
 The codebase was already reasonably solid (validation, webhook signature verification, Prisma connection reuse). Fixed:
 
-- **Duplicate confirmation emails**: `webhook.ts` used to email on every `SUCCESS` webhook delivery. Cashfree retries webhooks, so a slow response caused a resend. Now guarded — only fires on the actual transition into `PAID`.
+- **Duplicate confirmation emails**: `webhook.ts` used to email on every successful-payment webhook delivery. Payment gateways retry webhooks, so a slow response caused a resend. Now guarded — only fires on the actual transition into `PAID`.
 - **Out-of-order webhook safety**: a delayed `FAILED` webhook can no longer downgrade a registration a later `SUCCESS` already marked `PAID` (`updateMany` with a `status: { not: "PAID" }` guard).
 - **Central error handling**: added `asyncHandler` + a final Express error middleware. `admin.ts` had zero error handling before this — an unexpected Prisma error returned unstyled HTML instead of JSON.
 - **Status query param validation**: `GET /admin/registrations?status=` used to cast with `as any`; now validated against the real enum, returns 400 on garbage input instead of a Prisma crash.
@@ -92,7 +92,7 @@ Both apps build clean (`npm run build` in each) as of this session.
 
 ## Hosting decision: single Azure VM via Docker Compose
 
-**Do not use Vercel Hobby for the frontend** — its Fair Use Guidelines explicitly define "any method of requesting or processing payment from visitors" as commercial use, which requires Pro ($20/mo). This site triggers a Cashfree payment on every registration, so Hobby is a real ToS violation risk (deployment can be paused). Railway also no longer has a meaningful ongoing free tier (one-time $5/30-day trial, then $1/month after — not enough for an always-on Node+Postgres service).
+**Do not use Vercel Hobby for the frontend** — its Fair Use Guidelines explicitly define "any method of requesting or processing payment from visitors" as commercial use, which requires Pro ($20/mo). This site triggers a Razorpay payment on every registration, so Hobby is a real ToS violation risk (deployment can be paused). Railway also no longer has a meaningful ongoing free tier (one-time $5/30-day trial, then $1/month after — not enough for an always-on Node+Postgres service).
 
 **Decision**: since the actual need is a short, high-reliability window (2-3 event days, plus the registration period before it) rather than indefinite hosting, everything runs on **one Azure VM** funded by the user's **Azure for Students $100 credit** (12-month validity, renewable yearly while a student, no card required). A single always-on VM avoids the cold-start/sleep issues that split serverless free tiers (Render, etc.) have, and sidesteps Vercel's payment-processing ToS restriction entirely.
 
@@ -110,10 +110,10 @@ This was **built now but is meant to be started later**, close to the event, so 
 2. **DNS**: point your domain's A record (and `api.` subdomain) at the VM's public IP. Caddy needs this resolvable *before* it starts, or Let's Encrypt cert issuance fails.
 3. **Install Docker** on the VM (`curl -fsSL https://get.docker.com | sh`, then enable the compose plugin).
 4. **Clone the repo** onto the VM.
-5. Copy `.env.production.example` → `.env` in the repo root, fill in `DOMAIN`, `POSTGRES_*`, `NEXT_PUBLIC_API_URL` (`https://api.yourdomain.com`), `NEXT_PUBLIC_CASHFREE_ENV`.
-6. Copy `backend/.env.example` → `backend/.env`, fill in Cashfree production keys, `FRONTEND_URL=https://yourdomain.com`, `BACKEND_URL=https://api.yourdomain.com`, a long random `ADMIN_PASSWORD`, Resend key.
+5. Copy `.env.production.example` → `.env` in the repo root, fill in `DOMAIN`, `POSTGRES_*`, `NEXT_PUBLIC_API_URL` (`https://api.yourdomain.com`).
+6. Copy `backend/.env.example` → `backend/.env`, fill in Razorpay **Live Mode** keys, `FRONTEND_URL=https://yourdomain.com`, a long random `ADMIN_PASSWORD`, Resend key.
 7. `docker compose up -d --build`
-8. Add the Cashfree webhook URL (`https://api.yourdomain.com/webhook/cashfree`) in the Cashfree dashboard, subscribed to payment events.
+8. Add the webhook URL (`https://api.yourdomain.com/webhook/razorpay`) in the Razorpay dashboard (Settings → Webhooks), subscribed to `payment.captured` and `payment.failed`, and copy the webhook secret it gives you into `RAZORPAY_WEBHOOK_SECRET`. Test Mode and Live Mode webhooks are separate — re-add this when switching modes.
 9. Run through the go-live checklist below.
 10. **After the event**: `docker compose down` (or deallocate the VM in the Azure portal) to stop burning credit. Data stays in the `postgres_data` volume if you bring it back up on the same VM; if you'll need the data long-term, `pg_dump` it out first.
 
@@ -122,7 +122,7 @@ Don't spend the student credit on anything beyond this VM unless a real need com
 ## Go-live checklist
 
 - [ ] One ₹1 end-to-end sandbox test — confirm DB row flips to PAID and admin page shows it
-- [ ] Switch `CASHFREE_ENV=production` (backend) and `NEXT_PUBLIC_CASHFREE_ENV=production` (frontend build arg), swap in production Cashfree keys
+- [ ] Swap in Razorpay **Live Mode** keys (`RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`) and re-register the webhook under Live Mode (`RAZORPAY_WEBHOOK_SECRET` changes too — Test and Live webhooks are separate)
 - [ ] One real low-value production transaction before opening registration publicly
 - [ ] `ADMIN_PASSWORD` set to something long and random (not the placeholder)
 - [ ] Resources page has real, final content (slide deck / repo / cheat sheet links)

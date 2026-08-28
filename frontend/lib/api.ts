@@ -23,7 +23,16 @@ export async function registerForWorkshop(payload: RegisterPayload) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Registration failed");
-  return data as { registrationId: string; paymentSessionId: string };
+  return data as {
+    registrationId: string;
+    razorpayOrderId: string;
+    razorpayKeyId: string;
+    amount: number;
+    currency: string;
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 export async function getRegistrationCount(): Promise<number> {

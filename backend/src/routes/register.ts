@@ -1,7 +1,7 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { prisma } from "../lib/prisma.js";
-import { createCashfreeOrder } from "../lib/cashfree.js";
+import { createRazorpayOrder } from "../lib/razorpay.js";
 import { env } from "../lib/env.js";
 
 export const registerRouter = Router();
@@ -9,7 +9,7 @@ export const registerRouter = Router();
 const WORKSHOP_FEE_RUPEES = env.WORKSHOP_FEE_RUPEES;
 const MAX_FIELD_LENGTH = 150;
 
-// Registration triggers a Cashfree order call per request, so cap submission
+// Registration triggers a Razorpay order call per request, so cap submission
 // rate to deter spam/abuse rather than just accidental double-clicks.
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -101,26 +101,30 @@ registerRouter.post("/register", registerLimiter, async (req, res) => {
           },
         });
 
-    // ── Create Cashfree order ──
-    const order = await createCashfreeOrder({
-      orderId: `wr_${registration.id}`,
+    // ── Create Razorpay order ──
+    // Note: unlike Cashfree, Razorpay orders don't take a return/notify URL —
+    // the webhook endpoint is configured once in the Razorpay dashboard, not
+    // per order, so there's no BACKEND_URL/scheme footgun here.
+    const order = await createRazorpayOrder({
+      receipt: `wr_${registration.id}`,
       amountRupees: WORKSHOP_FEE_RUPEES,
-      customerId: registration.id,
-      customerName: name,
-      customerEmail: email,
-      customerPhone: phoneNorm,
-      returnUrl: `${env.FRONTEND_URL}/success?order_id={order_id}`,
-      notifyUrl: `${env.BACKEND_URL}/webhook/cashfree`,
+      notes: { registrationId: registration.id, email, name },
     });
 
     await prisma.registration.update({
       where: { id: registration.id },
-      data: { cfOrderId: order.cf_order_id },
+      data: { razorpayOrderId: order.id },
     });
 
     res.json({
       registrationId: registration.id,
-      paymentSessionId: order.payment_session_id,
+      razorpayOrderId: order.id,
+      razorpayKeyId: env.RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency,
+      name,
+      email,
+      phone: phoneNorm,
     });
   } catch (err) {
     console.error(err);

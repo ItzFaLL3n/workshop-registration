@@ -1,12 +1,12 @@
 // Validates required environment variables once at startup so misconfiguration
 // fails loudly and immediately, instead of surfacing later as a cryptic
-// Cashfree/DB/email error mid-request.
+// Razorpay/DB/email error mid-request.
 const REQUIRED_VARS = [
   "DATABASE_URL",
-  "CASHFREE_CLIENT_ID",
-  "CASHFREE_CLIENT_SECRET",
+  "RAZORPAY_KEY_ID",
+  "RAZORPAY_KEY_SECRET",
+  "RAZORPAY_WEBHOOK_SECRET",
   "FRONTEND_URL",
-  "BACKEND_URL",
   "ADMIN_PASSWORD",
   "RESEND_API_KEY",
 ] as const;
@@ -22,11 +22,10 @@ function loadEnv() {
 
   return {
     DATABASE_URL: process.env.DATABASE_URL!,
-    CASHFREE_CLIENT_ID: process.env.CASHFREE_CLIENT_ID!,
-    CASHFREE_CLIENT_SECRET: process.env.CASHFREE_CLIENT_SECRET!,
-    CASHFREE_ENV: process.env.CASHFREE_ENV === "production" ? "production" : "sandbox",
+    RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID!,
+    RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET!,
+    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET!,
     FRONTEND_URL: process.env.FRONTEND_URL!,
-    BACKEND_URL: process.env.BACKEND_URL!,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD!,
     RESEND_API_KEY: process.env.RESEND_API_KEY!,
     EMAIL_FROM: process.env.EMAIL_FROM || "workshop@yourdomain.com",

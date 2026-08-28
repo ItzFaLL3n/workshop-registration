@@ -673,7 +673,7 @@ export default async function HomePage() {
                 <li><strong>Venue:</strong> Kamarajar Arangam, Sacred Heart College (Autonomous).</li>
                 <li>Use your official full name as per your college identity card.</li>
                 <li>One registration per participant email address.</li>
-                <li>Instant payment confirmation via Cashfree PG with receipt.</li>
+                <li>Instant payment confirmation via Razorpay with receipt.</li>
                 <li>Certificates will be issued by Department of Computer Applications (BCA).</li>
               </ul>
 

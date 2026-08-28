@@ -22,7 +22,7 @@ export default function RefundPolicyPage() {
           }}
         >
           Draft — the refund window and processing time below are placeholders. Decide the real
-          terms and confirm before this goes live; Cashfree reviews this page during onboarding.
+          terms and confirm before this goes live; Razorpay reviews this page during onboarding.
         </div>
       )}
 
@@ -59,8 +59,8 @@ export default function RefundPolicyPage() {
           If a payment is deducted but your registration does not show as confirmed, or if you are
           charged more than once, contact itzselvan74@gmail.com with your payment reference — this
           will be verified and any erroneous charge refunded in full within 7 business days. (Note:
-          a payment that fails on Cashfree&apos;s side without a registration being created is
-          auto-reversed by Cashfree directly — no separate action is needed for that case.)
+          a payment that fails on Razorpay&apos;s side without a registration being created is
+          auto-reversed by Razorpay directly — no separate action is needed for that case.)
         </P>
       </div>
 
@@ -68,7 +68,7 @@ export default function RefundPolicyPage() {
         <H2>4. How Refunds Are Issued</H2>
         <P>
           Approved refunds are credited back to the original payment method used at checkout
-          (UPI, card, or netbanking) via Cashfree. Processing time after approval is typically
+          (UPI, card, or netbanking) via Razorpay. Processing time after approval is typically
           up to 7 business days, depending on your bank.
         </P>
       </div>

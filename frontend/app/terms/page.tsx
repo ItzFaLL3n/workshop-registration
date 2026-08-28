@@ -36,7 +36,7 @@ export default function TermsPage() {
         <P>
           Registration is open to students from any college, as this is an inter-collegiate
           workshop. A valid registration requires accurate name, email, and phone details, and
-          payment of the ₹150 registration fee via Cashfree. Registration is confirmed only once
+          payment of the ₹150 registration fee via Razorpay. Registration is confirmed only once
           payment is successfully received.
         </P>
       </div>
@@ -44,8 +44,8 @@ export default function TermsPage() {
       <div>
         <H2>2. Payments</H2>
         <P>
-          Payments are processed by Cashfree Payments, a third-party payment gateway. We do not
-          store your card, UPI, or banking credentials — Cashfree handles this directly.
+          Payments are processed by Razorpay, a third-party payment gateway. We do not
+          store your card, UPI, or banking credentials — Razorpay handles this directly.
           Registration fees are subject to the <a href="/refund-policy" style={{ color: "#146c43", fontWeight: 600 }}>Refund &amp; Cancellation Policy</a>.
         </P>
       </div>

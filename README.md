@@ -1,6 +1,6 @@
 # Workshop Registration Site
 
-Registration + Cashfree payment site for a college workshop (~400 expected
+Registration + Razorpay payment site for a college workshop (~400 expected
 registrations, not concurrent, event runs 2-3 days).
 
 - `frontend/` — Next.js 14
@@ -20,7 +20,7 @@ build spec (historical reference).
 ```bash
 # backend
 cd backend
-cp .env.example .env   # fill in Cashfree sandbox keys + DB URL
+cp .env.example .env   # fill in Razorpay test keys + DB URL
 npm install
 npx prisma migrate dev
 npm run dev             # http://localhost:4000

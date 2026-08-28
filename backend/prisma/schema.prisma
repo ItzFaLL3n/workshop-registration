@@ -26,8 +26,8 @@ model Registration {
   foodPreference String?
   status        RegistrationStatus  @default(PENDING)
   amount        Int                 // in paise (e.g. 49900 = ₹499)
-  cfOrderId     String?             @unique
-  cfPaymentId   String?
+  razorpayOrderId   String?         @unique
+  razorpayPaymentId String?
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 

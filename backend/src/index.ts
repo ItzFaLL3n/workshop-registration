@@ -19,7 +19,7 @@ app.use(cors({ origin: env.FRONTEND_URL }));
 // Webhook route needs the RAW body for signature verification — mount it
 // before express.json() so the body isn't parsed/re-serialized first.
 app.use(
-  "/webhook/cashfree",
+  "/webhook/razorpay",
   express.raw({ type: "application/json" }),
   webhookRouter
 );
