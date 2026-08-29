@@ -3,6 +3,7 @@ import express, { type ErrorRequestHandler } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import { env } from "./lib/env.js";
+import { prisma } from "./lib/prisma.js";
 import { registerRouter } from "./routes/register.js";
 import { webhookRouter } from "./routes/webhook.js";
 import { adminRouter } from "./routes/admin.js";
@@ -28,7 +29,17 @@ app.use(express.json());
 app.use(registerRouter);
 app.use(adminRouter);
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
+// Health check with a lightweight DB round-trip — used by the uptime
+// monitor, so a dead Postgres surfaces as a 503 instead of a false-green 200.
+app.get("/health", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ ok: true, db: true });
+  } catch (err) {
+    console.error("Health check DB query failed:", err);
+    res.status(503).json({ ok: false, db: false });
+  }
+});
 
 // Catch-all JSON error handler — the safety net for anything that reaches
 // here without being handled by a route's own try/catch (e.g. asyncHandler

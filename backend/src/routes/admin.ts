@@ -78,6 +78,27 @@ function requireAdminAuth(req: any, res: any, next: any) {
   next();
 }
 
+// Inline gate for actions only the full admin may perform (delete, editing a
+// Razorpay row, changing payment status). Call inside a requireStaffAuth
+// handler; returns false and writes the 403 if the caller isn't admin.
+function requireAdminRole(req: any, res: any): boolean {
+  if (req.role === "admin") return true;
+  res.status(403).json({ error: "Admin access required for this action." });
+  return false;
+}
+
+// Editable registrant fields (never status / paymentMethod / amount / razorpay*).
+const EDITABLE_FIELDS = [
+  "name",
+  "email",
+  "phone",
+  "college",
+  "department",
+  "year",
+  "gender",
+  "foodPreference",
+] as const;
+
 adminRouter.get(
   "/admin/registrations",
   adminLoginLimiter,
@@ -112,7 +133,8 @@ adminRouter.get(
       orderBy: { createdAt: "asc" },
     });
 
-    const header = "Name,Email,Phone,College,Department,Year,Gender,Food Preference,Payment Method,PaidAt\n";
+    const header =
+      "Name,Email,Phone,College,Department,Year,Gender,Food Preference,Payment Method,Attended,PaidAt\n";
     const rows = registrations
       .map((r) =>
         [
@@ -125,6 +147,7 @@ adminRouter.get(
           r.gender ?? "",
           r.foodPreference ?? "",
           r.paymentMethod,
+          r.attended ? "Yes" : "No",
           r.updatedAt.toISOString(),
         ]
           .map((v) => `"${String(v).replace(/"/g, '""')}"`)
@@ -223,5 +246,138 @@ adminRouter.post(
     );
 
     res.status(201).json({ registration });
+  })
+);
+
+// ──────────────────────────────────────────────
+//  PATCH /admin/registrations/:id/attendance   { attended: boolean }
+//  Check-in desk marks someone present/absent on event day. This is the
+//  ONLY mutation the registration team may perform on a RAZORPAY row —
+//  attendance has nothing to do with payment, so both roles can toggle it
+//  on any registration.
+// ──────────────────────────────────────────────
+adminRouter.patch(
+  "/admin/registrations/:id/attendance",
+  adminLoginLimiter,
+  requireStaffAuth,
+  asyncHandler(async (req, res) => {
+    const { attended } = req.body ?? {};
+    if (typeof attended !== "boolean") {
+      return res.status(400).json({ error: "`attended` must be true or false." });
+    }
+    const registration = await prisma.registration.findUnique({ where: { id: req.params.id } });
+    if (!registration) {
+      return res.status(404).json({ error: "Registration not found." });
+    }
+    const updated = await prisma.registration.update({
+      where: { id: registration.id },
+      data: { attended },
+    });
+    res.json({ registration: updated });
+  })
+);
+
+// ──────────────────────────────────────────────
+//  PATCH /admin/registrations/:id/status   { status }
+//  Admin-only correction of a CASH row's status (e.g. undo a mistaken
+//  "Mark Paid", or mark a no-show EXPIRED). A RAZORPAY row's status is
+//  driven solely by the webhook and can never be set here, by anyone.
+// ──────────────────────────────────────────────
+adminRouter.patch(
+  "/admin/registrations/:id/status",
+  adminLoginLimiter,
+  requireStaffAuth,
+  asyncHandler(async (req, res) => {
+    if (!requireAdminRole(req, res)) return;
+
+    const { status } = req.body ?? {};
+    if (!isValidStatus(status)) {
+      return res.status(400).json({ error: "Invalid status." });
+    }
+    const registration = await prisma.registration.findUnique({ where: { id: req.params.id } });
+    if (!registration) {
+      return res.status(404).json({ error: "Registration not found." });
+    }
+    if (registration.paymentMethod === "RAZORPAY") {
+      return res.status(400).json({
+        error: "Razorpay payment status is controlled by the webhook only and can't be set manually.",
+      });
+    }
+    const updated = await prisma.registration.update({
+      where: { id: registration.id },
+      data: { status },
+    });
+    res.json({ registration: updated });
+  })
+);
+
+// ──────────────────────────────────────────────
+//  PATCH /admin/registrations/:id   { <editable fields> }
+//  Fix a typo in someone's details. Admin may edit any row; the
+//  registration team may edit CASH rows only (RAZORPAY rows are off-limits
+//  to them entirely, same principle as "Mark Paid"). Never touches
+//  status / paymentMethod / amount / razorpay ids.
+// ──────────────────────────────────────────────
+adminRouter.patch(
+  "/admin/registrations/:id",
+  adminLoginLimiter,
+  requireStaffAuth,
+  asyncHandler(async (req, res) => {
+    const registration = await prisma.registration.findUnique({ where: { id: req.params.id } });
+    if (!registration) {
+      return res.status(404).json({ error: "Registration not found." });
+    }
+    if (req.role !== "admin" && registration.paymentMethod === "RAZORPAY") {
+      return res.status(403).json({
+        error: "The registration team can't edit Razorpay-paid registrations.",
+      });
+    }
+
+    // Merge provided overrides onto the current row, then run the shared
+    // validator so the same name/email/phone rules apply as at signup.
+    const merged: Record<string, unknown> = {
+      name: registration.name,
+      email: registration.email,
+      phone: registration.phone,
+      college: registration.college ?? undefined,
+      department: registration.department ?? undefined,
+      year: registration.year ?? undefined,
+      gender: registration.gender ?? undefined,
+      foodPreference: registration.foodPreference ?? undefined,
+    };
+    for (const field of EDITABLE_FIELDS) {
+      if (field in (req.body ?? {})) merged[field] = req.body[field];
+    }
+
+    const validated = validateRegistrationInput(merged);
+    if ("error" in validated) {
+      return res.status(400).json({ error: validated.error });
+    }
+
+    const updated = await prisma.registration.update({
+      where: { id: registration.id },
+      data: validated.data,
+    });
+    res.json({ registration: updated });
+  })
+);
+
+// ──────────────────────────────────────────────
+//  DELETE /admin/registrations/:id
+//  Admin-only. Hard delete — used to clear out spam/test rows.
+// ──────────────────────────────────────────────
+adminRouter.delete(
+  "/admin/registrations/:id",
+  adminLoginLimiter,
+  requireStaffAuth,
+  asyncHandler(async (req, res) => {
+    if (!requireAdminRole(req, res)) return;
+
+    const registration = await prisma.registration.findUnique({ where: { id: req.params.id } });
+    if (!registration) {
+      return res.status(404).json({ error: "Registration not found." });
+    }
+    await prisma.registration.delete({ where: { id: registration.id } });
+    res.status(204).end();
   })
 );

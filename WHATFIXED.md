@@ -175,6 +175,78 @@ Then placed it at `backend/prisma/migrations/00000000000000_init/migration.sql` 
 
 ---
 
+## 15. Migration: Netlify → Cloudflare Pages (static export), custom domain
+
+**Date:** 2026-08-29. **Why:** consolidate onto one platform with a real domain
+(`bcashc.online`) and remove the Netlify dependency. See
+`docs/superpowers/specs/2026-08-29-cloudflare-migration-design.md` and
+`docs/runbooks/go-live.md`.
+
+**What changed:**
+- `frontend/next.config.js`: `output: "standalone"` → `output: "export"` + `images: { unoptimized: true }`. The whole app is now a static `out/` directory — no Node server, no SSR adapter. This was only possible because the app has exactly **one** server component (`app/page.tsx`, which did a single `getRegistrationCount()` fetch with `revalidate = 60`).
+- `frontend/app/page.tsx`: the homepage no longer shows a live "N registered" count (product decision). Removed the `async`, the `revalidate`, the fetch, and the counter UI (replaced with a static "Hands-on Lab · Limited Seats" line so the hero meta row keeps two items).
+- `frontend/lib/api.ts`: deleted `getRegistrationCount()` (unused after the above). The backend `GET /register/count` endpoint is left in place, harmless.
+- `frontend/app/success/page.tsx`: static export can't pass `searchParams` as a prop to a client page. Split into `SuccessContent()` (uses `useSearchParams()`) wrapped in `<Suspense>` by the default export. Behaviour identical.
+- Deleted `netlify.toml` (repo root) and `frontend/Dockerfile` (dead once the frontend leaves Docker — it was already unused).
+- New `frontend/.env.example` (`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_YOUTUBE_VIDEO_ID`); `.env.local.example` updated to match.
+- `.gitignore`: added `out/` / `**/out/`.
+- Backend `FRONTEND_URL` becomes `https://bcashc.online`; root `DOMAIN` becomes `api.bcashc.online`. `.env.production.example` and `backend/.env.example` comments updated. `Caddyfile` body unchanged.
+- New `frontend/app/live/page.tsx` — the event live-stream page. Embeds an unlisted YouTube iframe (`youtube-nocookie.com/embed/<id>`) from `NEXT_PUBLIC_YOUTUBE_VIDEO_ID`; shows a "hasn't started yet" card while that's blank. "Live" link added to `FloatingNavbar` (desktop + mobile). No video load on our infra.
+
+**Manual pieces (not in the repo):** Cloudflare zone + nameservers, `api` proxied A record, Origin Certificate on Caddy + SSL mode Full (strict), a WAF **Skip** rule for `api.bcashc.online/webhook/*`, the Pages project + custom domain. All in `docs/runbooks/go-live.md`.
+
+---
+
+## 16. Feature: attendance + admin edit/delete + finer role rules
+
+**Date:** 2026-08-29.
+
+**Schema:** `Registration.attended Boolean @default(false)`;
+`razorpayPaymentId` gained `@unique`. Migration
+`20260829000000_add_attended_and_payment_id_unique` (generated via
+`prisma migrate diff --from-schema-datamodel <git HEAD snapshot> --to-schema-datamodel …`,
+no live DB — same technique as #9/#13).
+
+**New endpoints in `backend/src/routes/admin.ts`** (all under `requireStaffAuth`,
+with per-action role gates — enforced server-side, not just hidden in the UI):
+- `PATCH /admin/registrations/:id/attendance {attended}` — both roles, **any row incl. RAZORPAY** (attendance isn't a payment action).
+- `PATCH /admin/registrations/:id` (name/email/phone/college/department/year/gender/foodPreference) — admin any row; team **CASH rows only** (403 on RAZORPAY). Never touches status/method/amount/razorpay ids. Re-runs `validateRegistrationInput` on the merged row.
+- `PATCH /admin/registrations/:id/status {status}` — **admin only**, and **CASH rows only** (400 on RAZORPAY — the webhook stays the sole source of truth for online payments, so this is deliberately narrower than `MP.MD` Step 3's "admin can set status on any entry").
+- `DELETE /admin/registrations/:id` — **admin only** (403 for team). Hard delete.
+- CSV export gained an `Attended` column.
+
+**Frontend `admin/page.tsx`:** `attended` on the `Registration` type; a "Check-in"
+column with a Present/Absent toggle (optimistic, both roles); an "Attendance"
+filter (All / Checked in / Not checked in); an Edit modal (reuses the walk-in
+form styling; hidden for team on RAZORPAY rows); an admin-only Delete button; an
+admin-only status `<select>` on cash rows. Login model unchanged.
+
+---
+
+## 17. Hardening: webhook idempotency + DB connection bound + checkout retry copy
+
+**Date:** 2026-08-29.
+
+- `webhook.ts`: on `payment.captured` for an **unknown** `order_id`, explicitly
+  `return 200` + `console.warn` (previously it fell through to 200 implicitly —
+  now it's intentional and logged, and it can't reach the update path).
+  Added a defence-in-depth check: if the incoming `razorpayPaymentId` already
+  sits on a `PAID` row, no-op `200`. The `@unique` on `razorpayPaymentId` backs
+  this at the DB level.
+- `docker-compose.yml`: `DATABASE_URL` override gained
+  `?connection_limit=10&pool_timeout=20` — bounds Prisma's pool (default ~5 on
+  the 2-vCPU VM) with headroom for the registration-window burst, far under
+  Postgres's default `max_connections` 100.
+- `index.ts`: `/health` now does a `SELECT 1` and returns `503` if the DB is
+  unreachable, so the uptime monitor catches a dead Postgres instead of a
+  false-green 200.
+- `RegistrationForm.tsx`: closing the Razorpay modal without paying, or a
+  `payment.failed`, now shows an actionable message ("your seat is held as
+  pending — press Register & Pay to try again"). The pending row is already
+  reused on retry, so there's no orphan to clean up — the copy just says so.
+
+---
+
 ## Diagnostic pattern that worked well throughout
 
 For every "it's broken" report with no detail, the fastest path was:

@@ -149,12 +149,19 @@ export default function RegistrationForm() {
           window.location.href = `/success?order_id=${razorpayOrderId}`;
         },
         modal: {
-          ondismiss: () => setLoading(false),
+          ondismiss: () => {
+            setApiError(
+              "Payment window closed before it completed. Your seat is held as pending — press “Register & Pay” to try again."
+            );
+            setLoading(false);
+          },
         },
       });
 
       razorpay.on("payment.failed", () => {
-        setApiError("Payment failed. Please try again.");
+        setApiError(
+          "The payment didn’t go through. Your seat is held as pending — press “Register & Pay” to try again, or pick “Pay Cash at Event” instead."
+        );
         setLoading(false);
       });
 

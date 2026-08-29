@@ -37,7 +37,27 @@ webhookRouter.post("/", async (req, res) => {
         where: { razorpayOrderId: orderId },
       });
 
-      if (existing && existing.status !== "PAID") {
+      if (!existing) {
+        // Unknown order — a stray test event, or a payment for an order we
+        // never stored. Ack with 200 so Razorpay stops retrying something we
+        // can never match; nothing to do.
+        console.warn(`Webhook payment.captured for unknown order ${orderId} — ignoring`);
+        return res.status(200).json({ received: true, ignored: "unknown order" });
+      }
+
+      // Defence-in-depth idempotency: if this exact payment id already landed
+      // on a PAID row, this is a retry — no-op. (razorpayPaymentId is unique
+      // at the DB level too.)
+      if (paymentId) {
+        const byPayment = await prisma.registration.findFirst({
+          where: { razorpayPaymentId: paymentId },
+        });
+        if (byPayment && byPayment.status === "PAID") {
+          return res.status(200).json({ received: true, ignored: "already processed" });
+        }
+      }
+
+      if (existing.status !== "PAID") {
         const registration = await prisma.registration.update({
           where: { id: existing.id },
           data: { status: "PAID", razorpayPaymentId: paymentId },

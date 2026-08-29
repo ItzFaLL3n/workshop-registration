@@ -3,17 +3,15 @@
 Registration + Razorpay payment site for a college workshop (~400 expected
 registrations, not concurrent, event runs 2-3 days).
 
-- `frontend/` — Next.js 14
+- `frontend/` — Next.js 14, **static export** (`output: "export"`) → deployed on **Cloudflare Pages** (`bcashc.online`)
 - `backend/` — Express + Prisma
-- `docker-compose.yml` — full stack (Postgres + backend + frontend + Caddy),
-  deployed as a single Docker Compose stack on one VM. See **CLAUDE.md**
-  for why (Vercel Hobby's ToS prohibits payment processing; Railway has no
-  meaningful free tier) and the full deploy steps.
+- `docker-compose.yml` — the **VM stack**: Postgres + backend + Caddy (auto-HTTPS),
+  reachable at `api.bcashc.online`. The frontend is **not** in this stack.
 
-See **CLAUDE.md** for full project context, architecture, and the current
-state of the codebase — it's kept up to date each session. **HANDOFF.md**
-has the point-in-time handoff log. **MASTER_PROMPT.md** is the original
-build spec (historical reference).
+See **CLAUDE.md** for full project context and architecture (kept current each
+session). **`docs/runbooks/go-live.md`** is the manual go-live checklist.
+**HANDOFF.md** is the point-in-time handoff log. **`docs/superpowers/specs/`**
+holds design specs. **MASTER_PROMPT.md** / **MP.MD** are historical build prompts.
 
 ## Quick start (local dev)
 

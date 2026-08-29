@@ -36,8 +36,9 @@ model Registration {
   status        RegistrationStatus  @default(PENDING)
   paymentMethod PaymentMethod       @default(RAZORPAY)
   amount        Int                 // in paise (e.g. 49900 = ₹499)
+  attended      Boolean             @default(false) // toggled at the check-in desk on event day
   razorpayOrderId   String?         @unique
-  razorpayPaymentId String?
+  razorpayPaymentId String?         @unique
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 

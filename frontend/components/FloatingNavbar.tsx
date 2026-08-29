@@ -12,6 +12,7 @@ interface FloatingNavbarProps {
 export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isInstallPage = currentPath.startsWith("/install");
+  const isLivePage = currentPath.startsWith("/live");
 
   const overviewHref = isInstallPage ? "/#overview" : "#overview";
   const registrationHref = isInstallPage ? "/#registration" : "#registration";
@@ -64,6 +65,12 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
               className={`nav-link${isInstallPage ? " active" : ""}`}
             >
               Setup Guide
+            </Link>
+            <Link
+              href="/live"
+              className={`nav-link${isLivePage ? " active" : ""}`}
+            >
+              Live
             </Link>
             <a
               href={registrationHref}
@@ -121,6 +128,13 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
           onClick={() => setMobileMenuOpen(false)}
         >
           Setup Guide
+        </Link>
+        <Link
+          href="/live"
+          className="nav-link"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          Live
         </Link>
         <a
           href={registrationHref}

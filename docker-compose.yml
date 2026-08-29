@@ -22,7 +22,10 @@ services:
     environment:
       # Overrides whatever DATABASE_URL is in backend/.env — inside the
       # compose network, Postgres is always reachable at host "postgres".
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # connection_limit bounds Prisma's pool (default would be ~5 on the
+      # 2-vCPU VM); 10 gives headroom for the registration-window burst while
+      # staying far under Postgres's default max_connections of 100.
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?connection_limit=10&pool_timeout=20
     depends_on:
       postgres:
         condition: service_healthy

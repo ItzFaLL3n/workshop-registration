@@ -1,9 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Produces a self-contained .next/standalone build (server.js + only the
-  // node_modules it actually needs) so the Docker image doesn't have to
-  // ship the full node_modules tree.
-  output: "standalone",
+  // Static HTML export — the whole app is client-rendered (no server
+  // components, no route handlers), so `next build` emits a plain `out/`
+  // directory that Cloudflare Pages serves straight off its CDN. No Node
+  // server, no SSR adapter, nothing to cold-start.
+  output: "export",
+
+  // The static export can't run Next's image optimizer, so images are
+  // served as-authored.
+  images: { unoptimized: true },
 };
 
 module.exports = nextConfig;

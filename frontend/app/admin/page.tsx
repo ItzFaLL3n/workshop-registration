@@ -26,6 +26,7 @@ import {
   Filter,
   Wallet,
   UserPlus,
+  UserCheck,
   Banknote,
   X,
 } from "lucide-react";
@@ -44,8 +45,21 @@ interface Registration {
   foodPreference: string | null;
   status: string;
   paymentMethod: "RAZORPAY" | "CASH";
+  attended: boolean;
   createdAt: string;
 }
+
+const STATUS_OPTIONS = ["PENDING", "PAID", "FAILED", "EXPIRED"] as const;
+const EDIT_FIELDS: { key: keyof WalkInForm; label: string; type: string }[] = [
+  { key: "name", label: "Full name", type: "text" },
+  { key: "email", label: "Email", type: "email" },
+  { key: "phone", label: "Phone", type: "tel" },
+  { key: "college", label: "College", type: "text" },
+  { key: "department", label: "Department", type: "text" },
+  { key: "year", label: "Year", type: "text" },
+  { key: "gender", label: "Gender", type: "text" },
+  { key: "foodPreference", label: "Food preference", type: "text" },
+];
 
 interface AdminData {
   registrations: Registration[];
@@ -83,12 +97,20 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterMethod, setFilterMethod] = useState("ALL");
+  const [filterAttendance, setFilterAttendance] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [showWalkIn, setShowWalkIn] = useState(false);
   const [walkInForm, setWalkInForm] = useState<WalkInForm>(EMPTY_WALK_IN);
   const [walkInError, setWalkInError] = useState<string | null>(null);
   const [walkInSubmitting, setWalkInSubmitting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [statusSavingId, setStatusSavingId] = useState<string | null>(null);
+  const [editingRow, setEditingRow] = useState<Registration | null>(null);
+  const [editForm, setEditForm] = useState<WalkInForm>(EMPTY_WALK_IN);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   async function loadData() {
     if (!token) return;
@@ -164,6 +186,129 @@ export default function AdminPage() {
     setWalkInForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  // Toggle check-in attendance. Allowed for both roles on any row (it's not
+  // a payment action). Optimistic — reverts on failure.
+  async function toggleAttendance(r: Registration) {
+    if (!token || togglingId) return;
+    setTogglingId(r.id);
+    setError(null);
+    const next = !r.attended;
+    setData((d) =>
+      d ? { ...d, registrations: d.registrations.map((x) => (x.id === r.id ? { ...x, attended: next } : x)) } : d
+    );
+    try {
+      const res = await fetch(`${API_URL}/admin/registrations/${r.id}/attendance`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify({ attended: next }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || "Could not update attendance.");
+        setData((d) =>
+          d
+            ? { ...d, registrations: d.registrations.map((x) => (x.id === r.id ? { ...x, attended: r.attended } : x)) }
+            : d
+        );
+      }
+    } catch {
+      setError("Could not connect to the workshop registration backend.");
+      setData((d) =>
+        d
+          ? { ...d, registrations: d.registrations.map((x) => (x.id === r.id ? { ...x, attended: r.attended } : x)) }
+          : d
+      );
+    }
+    setTogglingId(null);
+  }
+
+  // Admin-only: correct a CASH row's status. The backend rejects this for
+  // RAZORPAY rows regardless of role.
+  async function changeStatus(r: Registration, status: string) {
+    if (!token || status === r.status) return;
+    setStatusSavingId(r.id);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/registrations/${r.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify({ status }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body.error || "Could not change status.");
+      } else {
+        await loadData();
+      }
+    } catch {
+      setError("Could not connect to the workshop registration backend.");
+    }
+    setStatusSavingId(null);
+  }
+
+  // Admin-only: hard delete (spam / test rows).
+  async function deleteRow(r: Registration) {
+    if (!token || deletingId) return;
+    if (!window.confirm(`Delete ${r.name}'s registration permanently? This can't be undone.`)) return;
+    setDeletingId(r.id);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/registrations/${r.id}`, {
+        method: "DELETE",
+        headers: { "x-admin-token": token },
+      });
+      if (!res.ok && res.status !== 204) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || "Could not delete this registration.");
+      } else {
+        await loadData();
+      }
+    } catch {
+      setError("Could not connect to the workshop registration backend.");
+    }
+    setDeletingId(null);
+  }
+
+  function openEdit(r: Registration) {
+    setEditingRow(r);
+    setEditError(null);
+    setEditForm({
+      name: r.name ?? "",
+      email: r.email ?? "",
+      phone: r.phone ?? "",
+      college: r.college ?? "",
+      department: r.department ?? "",
+      year: r.year ?? "",
+      gender: r.gender ?? "",
+      foodPreference: r.foodPreference ?? "",
+    });
+  }
+
+  async function submitEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!token || !editingRow) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/registrations/${editingRow.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "x-admin-token": token },
+        body: JSON.stringify(editForm),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setEditError(body.error || "Could not save changes.");
+        setEditSubmitting(false);
+        return;
+      }
+      setEditingRow(null);
+      await loadData();
+    } catch {
+      setEditError("Could not connect to the workshop registration backend.");
+    }
+    setEditSubmitting(false);
+  }
+
   // Registration desk adds someone who never registered online. Cash is
   // collected on the spot, so this is created already PAID server-side.
   async function submitWalkIn(e: React.FormEvent) {
@@ -201,6 +346,11 @@ export default function AdminPage() {
       rows = rows.filter((r) => r.paymentMethod === filterMethod);
     }
 
+    if (filterAttendance !== "ALL") {
+      const want = filterAttendance === "PRESENT";
+      rows = rows.filter((r) => r.attended === want);
+    }
+
     const q = searchQuery.toLowerCase().trim();
     if (q) {
       rows = rows.filter((r) =>
@@ -214,7 +364,7 @@ export default function AdminPage() {
     }
 
     return rows;
-  }, [data?.registrations, searchQuery, filterMethod]);
+  }, [data?.registrations, searchQuery, filterMethod, filterAttendance]);
 
   // Aggregate metric stats
   const totalCount = data?.registrations.length || 0;
@@ -415,8 +565,39 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Attendance Filter */}
+            <div className="md:col-span-2 space-y-1.5">
+              <label
+                htmlFor="admin-attendance-filter"
+                className="block text-xs font-mono uppercase tracking-wider font-semibold"
+                style={{ color: "var(--ink-3)" }}
+              >
+                Attendance
+              </label>
+              <div className="relative">
+                <select
+                  id="admin-attendance-filter"
+                  value={filterAttendance}
+                  onChange={(e) => setFilterAttendance(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all font-mono appearance-none cursor-pointer"
+                  style={{
+                    background: "var(--surface-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <option value="ALL">All</option>
+                  <option value="PRESENT">Checked in</option>
+                  <option value="ABSENT">Not checked in</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <UserCheck className="w-3.5 h-3.5" style={{ color: "var(--ink-4)" }} />
+                </div>
+              </div>
+            </div>
+
             {/* Action Buttons */}
-            <div className="md:col-span-5 flex items-center flex-wrap gap-2.5">
+            <div className="md:col-span-3 flex items-center flex-wrap gap-2.5">
               <button
                 onClick={loadData}
                 disabled={loading || !token}
@@ -704,6 +885,7 @@ export default function AdminPage() {
                       <th className="py-3 px-4 font-semibold">Food</th>
                       <th className="py-3 px-4 font-semibold">Method</th>
                       <th className="py-3 px-4 font-semibold">Status</th>
+                      <th className="py-3 px-4 font-semibold">Check-in</th>
                       <th className="py-3 px-4 font-semibold">Date</th>
                       <th className="py-3 px-4 font-semibold">Actions</th>
                     </tr>
@@ -795,6 +977,23 @@ export default function AdminPage() {
                           </span>
                         </td>
 
+                        {/* Check-in toggle */}
+                        <td className="py-3.5 px-4">
+                          <button
+                            onClick={() => toggleAttendance(r)}
+                            disabled={togglingId === r.id}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wide uppercase border transition-all disabled:opacity-50 cursor-pointer ${
+                              r.attended
+                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/25"
+                                : "bg-zinc-500/10 text-zinc-400 border-zinc-500/25"
+                            }`}
+                            title={r.attended ? "Checked in — click to undo" : "Mark as checked in"}
+                          >
+                            {r.attended ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                            {r.attended ? "Present" : "Absent"}
+                          </button>
+                        </td>
+
                         {/* Date */}
                         <td className="py-3.5 px-4 text-xs font-mono whitespace-nowrap" style={{ color: "var(--ink-4)" }}>
                           {new Date(r.createdAt).toLocaleDateString("en-IN", {
@@ -806,26 +1005,76 @@ export default function AdminPage() {
 
                         {/* Actions */}
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          {r.paymentMethod === "CASH" && r.status === "PENDING" ? (
-                            <button
-                              onClick={() => markCashPaid(r.id)}
-                              disabled={markingId === r.id}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-                              style={{
-                                background: "var(--accent-light)",
-                                borderColor: "var(--accent-line)",
-                                color: "var(--accent)",
-                              }}
-                              title="Confirm cash was collected at check-in"
-                            >
-                              <Banknote className="w-3.5 h-3.5" />
-                              <span>{markingId === r.id ? "Marking…" : "Mark Paid"}</span>
-                            </button>
-                          ) : (
-                            <span className="text-[11px] font-mono" style={{ color: "var(--ink-4)" }}>
-                              —
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5">
+                            {r.paymentMethod === "CASH" && r.status === "PENDING" && (
+                              <button
+                                onClick={() => markCashPaid(r.id)}
+                                disabled={markingId === r.id}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold border shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                                style={{
+                                  background: "var(--accent-light)",
+                                  borderColor: "var(--accent-line)",
+                                  color: "var(--accent)",
+                                }}
+                                title="Confirm cash was collected at check-in"
+                              >
+                                <Banknote className="w-3.5 h-3.5" />
+                                <span>{markingId === r.id ? "Marking…" : "Mark Paid"}</span>
+                              </button>
+                            )}
+
+                            {isAdmin && r.paymentMethod === "CASH" && (
+                              <select
+                                value={r.status}
+                                onChange={(e) => changeStatus(r, e.target.value)}
+                                disabled={statusSavingId === r.id}
+                                className="px-2 py-1 text-[11px] rounded-lg border font-mono cursor-pointer disabled:opacity-50"
+                                style={{
+                                  background: "var(--surface-2)",
+                                  borderColor: "var(--line)",
+                                  color: "var(--ink-2)",
+                                }}
+                                title="Change status (cash rows only)"
+                              >
+                                {STATUS_OPTIONS.map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+
+                            {!(data?.role === "team" && r.paymentMethod === "RAZORPAY") && (
+                              <button
+                                onClick={() => openEdit(r)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium border transition-all cursor-pointer"
+                                style={{
+                                  background: "var(--surface-2)",
+                                  borderColor: "var(--line)",
+                                  color: "var(--ink-3)",
+                                }}
+                                title="Edit registrant details"
+                              >
+                                Edit
+                              </button>
+                            )}
+
+                            {isAdmin && (
+                              <button
+                                onClick={() => deleteRow(r)}
+                                disabled={deletingId === r.id}
+                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium border transition-all disabled:opacity-50 cursor-pointer"
+                                style={{
+                                  background: "rgba(239, 68, 68, 0.08)",
+                                  borderColor: "rgba(239, 68, 68, 0.3)",
+                                  color: "#ef4444",
+                                }}
+                                title="Delete permanently"
+                              >
+                                {deletingId === r.id ? "…" : "Delete"}
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -833,7 +1082,7 @@ export default function AdminPage() {
                     {filteredRegistrations.length === 0 && (
                       <tr>
                         <td
-                          colSpan={9}
+                          colSpan={10}
                           className="py-12 text-center text-xs font-mono"
                           style={{ color: "var(--ink-4)" }}
                         >
@@ -844,6 +1093,84 @@ export default function AdminPage() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Registration Modal */}
+        {editingRow && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.6)" }}
+            onClick={() => !editSubmitting && setEditingRow(null)}
+          >
+            <div
+              className="w-full max-w-lg rounded-2xl border shadow-xl p-5 sm:p-6"
+              style={{ background: "var(--surface-1)", borderColor: "var(--line)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                  Edit registration — {editingRow.name}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => !editSubmitting && setEditingRow(null)}
+                  style={{ color: "var(--ink-4)" }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-[11px] font-mono mb-3" style={{ color: "var(--ink-4)" }}>
+                {editingRow.paymentMethod} · {editingRow.status} — payment status &amp; method aren&apos;t editable here.
+              </p>
+
+              <form onSubmit={submitEdit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {EDIT_FIELDS.map(({ key, label, type }) => (
+                  <label key={key} className="flex flex-col gap-1 text-[11px] font-mono" style={{ color: "var(--ink-3)" }}>
+                    {label}
+                    <input
+                      type={type}
+                      value={editForm[key]}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                      required={key === "name" || key === "email" || key === "phone"}
+                      className="px-3 py-2 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all"
+                      style={{ background: "var(--surface-2)", borderColor: "var(--line)", color: "var(--ink)" }}
+                    />
+                  </label>
+                ))}
+
+                {editError && (
+                  <div
+                    className="sm:col-span-2 p-3 rounded-xl border text-xs font-mono flex items-center gap-2.5"
+                    style={{ background: "rgba(239,68,68,0.08)", borderColor: "rgba(239,68,68,0.3)", color: "#ef4444" }}
+                  >
+                    <XCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{editError}</span>
+                  </div>
+                )}
+
+                <div className="sm:col-span-2 flex items-center justify-end gap-2.5 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setEditingRow(null)}
+                    disabled={editSubmitting}
+                    className="px-4 py-2 rounded-xl text-sm font-medium border disabled:opacity-50 cursor-pointer"
+                    style={{ background: "var(--surface-2)", borderColor: "var(--line)", color: "var(--ink-2)" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={editSubmitting}
+                    className="px-5 py-2 rounded-xl text-sm font-semibold text-white shadow-md disabled:opacity-50 cursor-pointer"
+                    style={{ background: "var(--accent)" }}
+                  >
+                    {editSubmitting ? "Saving…" : "Save changes"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

@@ -2,7 +2,6 @@ import RegistrationForm from "@/components/RegistrationForm";
 import ClientScripts from "@/components/ClientScripts";
 import dynamic from "next/dynamic";
 import AgentWorkflowDiagram from "@/components/AgentWorkflowDiagram";
-import { getRegistrationCount } from "@/lib/api";
 import Image from "next/image";
 import FloatingNavbar from "@/components/FloatingNavbar";
 import {
@@ -29,11 +28,7 @@ const PhotoSlideshow = dynamic(() => import("@/components/PhotoSlideshow"), {
   ssr: false,
 });
 
-export const revalidate = 60;
-
-export default async function HomePage() {
-  const count = await getRegistrationCount();
-
+export default function HomePage() {
   return (
     <>
       {/* ── 1. FLOATING NAVBAR ───────────────────────────────── */}
@@ -84,9 +79,7 @@ export default async function HomePage() {
                 </div>
                 <div className="hero-meta-item">
                   <Users style={{ width: 15, height: 15, color: "var(--accent)" }} />
-                  <span>
-                    <strong className="hero-meta-count">{count}</strong> registered
-                  </span>
+                  <span>Hands-on Lab · Limited Seats</span>
                 </div>
               </div>
             </div>

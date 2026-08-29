@@ -2,8 +2,20 @@
 
 **Project:** VORTEX NEOVIA'27 — LLM Agents Workshop Registration
 **College:** Sacred Heart College, Dept. of Computer Applications
-**Last updated:** 2026-08-28
-**See also:** `CLAUDE.md` — canonical, kept-current context file (architecture description there is now slightly stale re: hosting split, see below). `WHATFIXED.md` — detailed error/fix log from this deployment session; read it before debugging anything that looks like a repeat of a past issue.
+**Last updated:** 2026-08-29
+**See also:** `CLAUDE.md` — canonical context file. `WHATFIXED.md` — detailed error/fix log (entries #15–17 are the 2026-08-29 Cloudflare migration + attendance work). `docs/superpowers/specs/2026-08-29-cloudflare-migration-design.md` — the design for that work. `docs/runbooks/go-live.md` — the full manual go-live checklist (Cloudflare, Razorpay, VM), supersedes "What's Left" below.
+
+## 2026-08-29 update — hosting moved to Cloudflare, attendance added
+
+Not deployed yet; code is on branch `feat/cloudflare-migration-attendance`. Changes:
+
+- **Frontend → Cloudflare Pages** as a **static export** (`output: "export"`), served from `bcashc.online` (a real domain now, on Cloudflare free). Netlify is dropped (`netlify.toml` deleted). Homepage no longer shows a live registration count.
+- **API stays on the Azure VM** but moves to `api.bcashc.online`, Cloudflare-proxied. `Caddyfile` body unchanged; `DOMAIN` env changes; TLS via a Cloudflare Origin Certificate (runbook §2). A WAF **Skip** rule for `/webhook/*` is required so Razorpay's webhook isn't bot-challenged (runbook §3).
+- **New `/live` page** — embedded unlisted-YouTube iframe for the event stream (`NEXT_PUBLIC_YOUTUBE_VIDEO_ID`).
+- **Attendance + admin edit/delete** — `Registration.attended`, new `PATCH …/attendance`, `PATCH …/:id`, `PATCH …/:id/status`, `DELETE …/:id` endpoints with server-side role gates; admin dashboard gains a check-in toggle, attendance filter, edit modal, delete + status controls. Auth model unchanged (still two shared passwords).
+- **Hardening** — webhook `razorpayPaymentId` unique + idempotency short-circuit, `connection_limit=10` on the DB URL, `/health` does a real DB ping.
+
+Everything below this block describes the pre-2026-08-29 state; treat the runbook as the current go-live source of truth.
 
 ---
 

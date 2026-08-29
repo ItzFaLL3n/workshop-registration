@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -22,16 +23,10 @@ import {
 } from "lucide-react";
 import FloatingNavbar from "@/components/FloatingNavbar";
 
-interface SuccessPageProps {
-  searchParams?: {
-    order_id?: string;
-    method?: string;
-  };
-}
-
-export default function SuccessPage({ searchParams }: SuccessPageProps) {
-  const orderId = searchParams?.order_id || "VN27-CONFIRMED";
-  const isCash = searchParams?.method === "cash";
+function SuccessContent() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("order_id") || "VN27-CONFIRMED";
+  const isCash = searchParams.get("method") === "cash";
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -683,5 +678,31 @@ export default function SuccessPage({ searchParams }: SuccessPageProps) {
         </div>
       </footer>
     </>
+  );
+}
+
+// useSearchParams() must sit inside a Suspense boundary for the static
+// export build to succeed.
+export default function SuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <main
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--ink-3)",
+            fontFamily: "var(--font-mono)",
+            fontSize: 14,
+          }}
+        >
+          Loading your confirmation…
+        </main>
+      }
+    >
+      <SuccessContent />
+    </Suspense>
   );
 }

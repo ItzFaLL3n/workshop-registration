@@ -39,16 +39,20 @@ backend/
 frontend/
   app/
     page.tsx            Homepage + registration form
-    success/, failure/  Post-payment result pages
+    success/, failure/  Post-payment result pages (success uses useSearchParams + Suspense)
     resources/           Install/resources page
-    admin/page.tsx        Password-gated dashboard + CSV export
+    live/page.tsx         Event live-stream page — embedded unlisted YouTube iframe
+    admin/page.tsx        Password-gated dashboard: list, CSV, check-in toggle, edit/delete
   components/RegistrationForm.tsx
-  lib/api.ts              registerForWorkshop(), getRegistrationCount(), getApiUrl()
-  next.config.js          output: "standalone" (for Docker)
-  Dockerfile
-docker-compose.yml   Full stack: postgres, backend, frontend, caddy (auto-HTTPS)
+  components/FloatingNavbar.tsx   shared nav (has the /live link)
+  lib/api.ts              registerForWorkshop(), getApiUrl()
+  next.config.js          output: "export"  (static — Cloudflare Pages)
+  .env.example
+docker-compose.yml   VM stack: postgres, backend, caddy (auto-HTTPS). Frontend is NOT here — it's on Cloudflare Pages.
 Caddyfile
 .env.production.example   Root env template for the VM deploy
+docs/runbooks/go-live.md         Full manual go-live checklist
+docs/superpowers/specs/          Design specs
 ```
 
 ## Local dev
@@ -70,7 +74,7 @@ npm run dev              # http://localhost:3000
 
 Required backend env vars (validated at startup by `src/lib/env.ts` — missing any of these throws immediately instead of failing later with a cryptic error): `DATABASE_URL`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`, `FRONTEND_URL`, `ADMIN_PASSWORD`, `REGISTRATION_TEAM_PASSWORD`, `RESEND_API_KEY`. Optional: `EMAIL_FROM`, `WORKSHOP_FEE_RUPEES` (defaults 150), `PORT` (defaults 4000). Unlike Cashfree, Razorpay has no separate sandbox/production URL — Test Mode vs Live Mode is just which key pair (`rzp_test_...` vs `rzp_live_...`) you use, so there's no `RAZORPAY_ENV`-style flag and `BACKEND_URL` is no longer needed (Razorpay's webhook URL is configured once in their dashboard, not per-order).
 
-Frontend: `NEXT_PUBLIC_API_URL` — the only required frontend env var now. The Razorpay key id is returned by `POST /register` per-request rather than baked into the frontend build, so there's no `NEXT_PUBLIC_RAZORPAY_*` build-time var to keep in sync.
+Frontend: `NEXT_PUBLIC_API_URL` (required, e.g. `https://api.bcashc.online`) and `NEXT_PUBLIC_YOUTUBE_VIDEO_ID` (optional — the `/live` page's stream id; blank shows a "not started" placeholder). Both are set in the **Cloudflare Pages** project and baked in at build time. The Razorpay key id is returned by `POST /register` per-request rather than baked into the frontend build, so there's no `NEXT_PUBLIC_RAZORPAY_*` build-time var to keep in sync.
 
 ## Hardening done this session (2026-08-14)
 
@@ -90,7 +94,51 @@ The codebase was already reasonably solid (validation, webhook signature verific
 
 Both apps build clean (`npm run build` in each) as of this session.
 
-## Hosting decision: single Azure VM via Docker Compose
+## 2026-08-29 session — Cloudflare migration + attendance + live page
+
+See `WHATFIXED.md` #15–17 and the spec at
+`docs/superpowers/specs/2026-08-29-cloudflare-migration-design.md`. Summary:
+
+- **Frontend → Cloudflare Pages, static export.** `output: "export"` + `images.unoptimized`.
+  Possible because the app had one server component only (the homepage count fetch),
+  which was **removed** — the public site no longer shows a live registration count.
+  `success/page.tsx` switched from a `searchParams` prop to `useSearchParams()` +
+  `<Suspense>`. `netlify.toml` and `frontend/Dockerfile` deleted. `out/` gitignored.
+- **API host** → `api.bcashc.online` (Cloudflare-proxied). `FRONTEND_URL=https://bcashc.online`,
+  root `DOMAIN=api.bcashc.online`. `Caddyfile` body unchanged. TLS via a Cloudflare
+  Origin Cert (runbook §2); a WAF Skip rule protects `/webhook/*` (runbook §3).
+- **`/live` page** — embedded unlisted-YouTube iframe, id from `NEXT_PUBLIC_YOUTUBE_VIDEO_ID`,
+  "not started" placeholder when unset. Linked from `FloatingNavbar`.
+- **Attendance + admin edit/delete.** New `Registration.attended`;
+  `razorpayPaymentId` is now `@unique`. Migration
+  `20260829000000_add_attended_and_payment_id_unique`. New admin endpoints, all
+  with server-side role gates:
+  - `PATCH /admin/registrations/:id/attendance` — both roles, any row (incl. RAZORPAY).
+  - `PATCH /admin/registrations/:id` — admin any row; team CASH only.
+  - `PATCH /admin/registrations/:id/status` — admin only, CASH only (RAZORPAY status
+    stays webhook-driven; a Razorpay row's status can never be set by hand).
+  - `DELETE /admin/registrations/:id` — admin only.
+  - CSV export gained an `Attended` column.
+  Admin dashboard: check-in toggle, attendance filter, edit modal, delete + status controls.
+- **Hardening.** Webhook: explicit `200` + log on unknown `order_id`; idempotency
+  short-circuit on a already-`PAID` `razorpayPaymentId`. `DATABASE_URL` gains
+  `connection_limit=10&pool_timeout=20`. `/health` does a real `SELECT 1` (503 on failure).
+  Checkout: modal-dismiss / `payment.failed` now shows a "seat held, retry" message.
+- **Auth unchanged** — still two shared passwords (`ADMIN_PASSWORD`,
+  `REGISTRATION_TEAM_PASSWORD`) via `x-admin-token`. No `User` table (deliberate).
+
+## Hosting (current): Cloudflare Pages frontend + Azure VM API
+
+> **Updated 2026-08-29.** The frontend is now a **static export** (`next.config.js`
+> `output: "export"`) hosted on **Cloudflare Pages** at `bcashc.online`. The Azure
+> VM runs **API + Postgres + Caddy only**, reachable at `api.bcashc.online`
+> (Cloudflare-proxied). Netlify is gone (`netlify.toml` deleted); `frontend/Dockerfile`
+> is deleted. Full go-live steps: **`docs/runbooks/go-live.md`**. Design/rationale:
+> `docs/superpowers/specs/2026-08-29-cloudflare-migration-design.md`. The section
+> below is retained for the VM/Docker context (Postgres, backend, Caddy) — the
+> "frontend service" and "Vercel/Netlify" parts of it are historical.
+
+## Hosting decision (historical): single Azure VM via Docker Compose
 
 **Do not use Vercel Hobby for the frontend** — its Fair Use Guidelines explicitly define "any method of requesting or processing payment from visitors" as commercial use, which requires Pro ($20/mo). This site triggers a Razorpay payment on every registration, so Hobby is a real ToS violation risk (deployment can be paused). Railway also no longer has a meaningful ongoing free tier (one-time $5/30-day trial, then $1/month after — not enough for an always-on Node+Postgres service).
 
@@ -137,6 +185,8 @@ Don't spend the student credit on anything beyond this VM unless a real need com
 | Pending row reuse | Same email re-registering while `PENDING` reuses that row instead of creating a new one |
 | Fee | `WORKSHOP_FEE_RUPEES` env var, stored in paise in the DB |
 | Admin auth | Two shared passwords via `x-admin-token` header — `ADMIN_PASSWORD` (full access) and `REGISTRATION_TEAM_PASSWORD` (check-in desk, see below). No per-user accounts — fine at this scale. |
+| Attendance | `Registration.attended` (bool). `PATCH /admin/registrations/:id/attendance` — **both roles, any row** (attendance ≠ payment). Admin dashboard has a per-row toggle + an attendance filter; CSV export has an `Attended` column. |
+| Admin edit / delete | `PATCH /admin/registrations/:id` edits contact fields — admin any row, **team CASH rows only** (403 on RAZORPAY). `PATCH /admin/registrations/:id/status` — **admin only, CASH rows only** (a RAZORPAY row's status is webhook-driven and can never be set by hand, by anyone). `DELETE /admin/registrations/:id` — **admin only**. All role checks are server-side. |
 | Pay Cash at Event | Registrants can pick "Pay Cash at Event" instead of Razorpay at signup — `paymentMethod: CASH` on the row, status stays `PENDING` as a reservation (counted in the public counter immediately) until the registration desk confirms cash was collected at check-in via `PATCH /admin/registrations/:id/mark-cash-paid`. That endpoint — and everyone, admin included — can **never** mark a `RAZORPAY` row `PAID` this way; only the webhook does that. |
 | Registration desk role | Logs into the same `/admin` page with `REGISTRATION_TEAM_PASSWORD` instead of `ADMIN_PASSWORD`. Can see every registration and use "Mark Paid" / "Add Walk-in", but the CSV export button is hidden (admin-only). `GET /admin/registrations` returns a `role` field so the frontend knows which UI to show. |
 | Walk-in registrations | `POST /admin/registrations/walk-in` (admin or team) — for someone who never registered online; created already `PAID` + `CASH` since the desk collects cash on the spot, no separate confirmation step. |
