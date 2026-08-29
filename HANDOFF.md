@@ -2,8 +2,84 @@
 
 **Project:** VORTEX NEOVIA'27 — LLM Agents Workshop Registration
 **College:** Sacred Heart College, Dept. of Computer Applications
-**Last updated:** 2026-08-29
-**See also:** `CLAUDE.md` — canonical context file. `WHATFIXED.md` — detailed error/fix log (entries #15–17 are the 2026-08-29 Cloudflare migration + attendance work). `docs/superpowers/specs/2026-08-29-cloudflare-migration-design.md` — the design for that work. `docs/runbooks/go-live.md` — the full manual go-live checklist (Cloudflare, Razorpay, VM), supersedes "What's Left" below.
+**Last updated:** 2026-08-30
+**See also:** `CLAUDE.md` — canonical context file. `WHATFIXED.md` — detailed error/fix log. `docs/runbooks/go-live.md` — full manual go-live checklist.
+
+> **Everything below the 2026-08-30 block is history.** Hostnames in it
+> (`bcashc.online`, `vortexneovia.centralindia.cloudapp.azure.com`, Netlify,
+> Cashfree) are all superseded. Trust the 2026-08-30 block + `CLAUDE.md`.
+
+---
+
+## 2026-08-30 — real domain live, going fully live tomorrow
+
+### Current state
+
+| Piece | Where | Status |
+|---|---|---|
+| Domain | `shcbca.online` — bought on **GoDaddy**, nameservers → **Cloudflare** (free plan) | live |
+| Frontend | **Cloudflare Pages**, static export, `https://shcbca.online` (+ `www` → apex redirect rule) | live, building from branch `feat/cloudflare-migration-attendance` |
+| API + Postgres + Caddy | **Azure VM**, `https://api.shcbca.online` | live, **Razorpay TEST mode** |
+| `api` DNS record | Cloudflare `A` record, **DNS only / grey cloud** — Cloudflare is NOT in front of the API, so Caddy does its own Let's Encrypt; **no Origin Cert, no WAF rule** | — |
+| Email | Resend, key is the **placeholder `re_placeholder_until_setup`** — **emails do not send yet** | pending |
+
+- **Event: Sunday, 7 September 2026, 09:30 AM – 04:30 PM IST.** Single day. Venue: Kamarajar Arangam.
+- **Online registration closes 5 September 2026** — notice only, the form stays open (no auto-disable).
+- Homepage hero shows a **live countdown** to the event (replaces the old workflow diagram). No registration counter anywhere on the public site.
+- The Razorpay key id is returned per-request by `POST /register`, **not** baked into the frontend build — so switching to Live keys needs **no frontend deploy**.
+
+### Pending backend commit (pushed 2026-08-30, VM NOT redeployed for it yet)
+
+Needs `git pull && docker compose up -d --build` on the VM:
+
+- Rate limits: `POST /register` **10 → 120 / 15 min / IP** (campus NAT, carrier CGNAT, phone hotspots put many real users on one IP); `adminLoginLimiter` **20 → 50** + `skipSuccessfulRequests` (only failed logins count, so bulk check-in / deletes can't trip it).
+- Webhook: recovers the registration via the order's `notes.registrationId` / `receipt` when a payment lands on a stale order id (user pressed "Register & Pay" twice) — closes a money-in / never-marked-PAID gap. Atomic `updateMany` PAID transition → exactly-once confirmation email even on simultaneous duplicate delivery. `AbortSignal.timeout(15000)` on all Razorpay API calls.
+- `POST /register` + walk-in: find-or-create wrapped in a `$transaction` with a `pg_advisory_xact_lock(hashtext(email))` → concurrent double-submit for one email can't create two rows.
+- Input validation trims all fields; `MAX_FIELD_LENGTH` now also caps year/gender/food.
+- CSV export rewritten: **all** rows (was PAID-only), adds Payment Status + Attendance (Present/Absent) + Amount columns, readable IST datetime, UTF-8 BOM, formula-injection guard.
+
+### To finish tomorrow
+
+**A. Cloudflare Pages — stop backend commits burning builds**
+- Settings → Builds & deployments → **Build watch paths → Include: `frontend/*`**. After this, backend-only pushes don't trigger a Pages build.
+
+**B. Razorpay → Live Mode** (edit `backend/.env` on the VM, then rebuild)
+1. Confirm the account is **activated for Live Mode** (KYC approved) — dashboard → Account status.
+2. Live Mode → Settings → API Keys → generate → `RAZORPAY_KEY_ID=rzp_live_…`, `RAZORPAY_KEY_SECRET=…`
+3. Live Mode → Settings → Configuration → **Auto-capture payments ON** (else `payment.captured` never fires).
+4. Live Mode → Settings → **Bank Accounts & Settlements** → a bank account is linked.
+5. Live Mode → Settings → **Webhooks** (separate from Test) → add `https://api.shcbca.online/webhook/razorpay`, events `payment.captured` + `payment.failed`, new secret → `RAZORPAY_WEBHOOK_SECRET=…` (different from the test one).
+
+**C. Resend → real email** (edit `backend/.env`, then rebuild)
+1. Resend → Domains → add `shcbca.online` → put its DKIM/SPF records in **Cloudflare DNS as DNS-only (grey)** → Verify.
+2. Resend → API Keys → create ("Sending access") → `RESEND_API_KEY=re_…` (replace the placeholder).
+3. `EMAIL_FROM=VORTEX NEOVIA <noreply@shcbca.online>` (must be at the verified domain). Fallback if not verified in time: `EMAIL_FROM=VORTEX NEOVIA <onboarding@resend.dev>` with the real key.
+
+**D. Deploy the VM**
+```bash
+ssh <user>@<VM_IP>
+cd ~/workshop-registration
+git pull
+docker compose up -d --build
+curl -s https://api.shcbca.online/health          # {"ok":true,"db":true}
+```
+
+**E. Final sweep before opening registration**
+- `ADMIN_PASSWORD` + `REGISTRATION_TEAM_PASSWORD` in `backend/.env` are long random (`openssl rand -hex 24`), not placeholders.
+- `FRONTEND_URL=https://shcbca.online` exact — no trailing slash, no `www`. `WORKSHOP_FEE_RUPEES=150`.
+- **One real ₹150 Live transaction** end-to-end: register → pay → row `PAID` in `/admin` → email arrives → shows in Razorpay Live dashboard → **refund it** from Razorpay.
+- **Clear test data:** `docker compose exec postgres psql -U workshop -d workshop_registration -c 'TRUNCATE "Registration";'`
+- UptimeRobot HTTPS monitor on `https://api.shcbca.online/health`.
+- Backup command to keep handy: `docker compose exec postgres pg_dump -U workshop workshop_registration > backup-$(date +%F).sql`
+- `/resources` and `/install` have the real deck / repo / cheat-sheet links.
+- **Event day only:** set `NEXT_PUBLIC_YOUTUBE_VIDEO_ID` in Cloudflare Pages env + Retry deployment → `/live` embeds the stream.
+
+### Capacity (already handled — don't over-engineer)
+
+- The whole public site (`/`, `/live`, `/install`, `/success`, `/resources`) is **static on Cloudflare's edge** — any number of concurrent viewers, zero backend load. The YouTube embed streams from Google.
+- The **only** thing a visitor does that hits the VM is `POST /register`. 50–200 concurrent registrations are fine: the DB transaction is ~3–5 ms, the Razorpay API call is outside it, the 10-connection pool drains in tens of ms. No concurrency change needed — the 120/15min limit is purely so shared-IP users aren't falsely blocked.
+
+---
 
 ## 2026-08-29 update — hosting moved to Cloudflare, attendance added
 

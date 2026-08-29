@@ -34,7 +34,7 @@ function matches(token: string, secret: string) {
 // tripping it, while a wrong password is still capped at 30 tries / 15 min / IP.
 const adminLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 30,
+  limit: 50,
   skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
@@ -252,33 +252,45 @@ adminRouter.post(
     const { name, email, phone, college, department, year, gender, foodPreference } =
       validated.data;
 
-    const existing = await prisma.registration.findFirst({
-      where: { email, status: { in: ["PENDING", "PAID"] } },
+    // Advisory lock on the email so two desk operators adding the same
+    // walk-in at once can't both create a row.
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${email}))`;
+      const existing = await tx.registration.findFirst({
+        where: { email, status: { in: ["PENDING", "PAID"] } },
+      });
+      if (existing) {
+        return { conflictStatus: existing.status };
+      }
+      return {
+        registration: await tx.registration.create({
+          data: {
+            name,
+            email,
+            phone,
+            college,
+            department,
+            year,
+            gender,
+            foodPreference,
+            paymentMethod: "CASH",
+            status: "PAID",
+            amount: env.WORKSHOP_FEE_RUPEES * 100,
+          },
+        }),
+      };
     });
-    if (existing) {
+
+    if ("conflictStatus" in result) {
       return res.status(409).json({
         error:
-          existing.status === "PAID"
+          result.conflictStatus === "PAID"
             ? "This email is already registered and paid."
             : "This email already has a pending registration — use \"Mark Paid\" on that row instead of adding a new one.",
       });
     }
 
-    const registration = await prisma.registration.create({
-      data: {
-        name,
-        email,
-        phone,
-        college,
-        department,
-        year,
-        gender,
-        foodPreference,
-        paymentMethod: "CASH",
-        status: "PAID",
-        amount: env.WORKSHOP_FEE_RUPEES * 100,
-      },
-    });
+    const { registration } = result;
 
     await sendConfirmationEmail(email, name).catch((e) =>
       console.error("Walk-in confirmation email failed:", e)

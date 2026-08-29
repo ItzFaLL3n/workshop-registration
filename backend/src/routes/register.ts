@@ -10,11 +10,14 @@ export const registerRouter = Router();
 
 const WORKSHOP_FEE_RUPEES = env.WORKSHOP_FEE_RUPEES;
 
-// Registration triggers a Razorpay order call per request, so cap submission
-// rate to deter spam/abuse rather than just accidental double-clicks.
+// Each registration creates a Razorpay order, so cap the rate to blunt a
+// scripted flood. Set high enough that a whole college lab, a phone hotspot,
+// or a shared mobile-carrier / CGNAT IP registering in one rush isn't blocked
+// — dozens of unrelated real users routinely share one public IP. A genuine
+// abuser still blows past this quickly.
 const registerLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: 120,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -65,29 +68,27 @@ registerRouter.post("/register", registerLimiter, async (req, res) => {
     const paymentMethod = req.body.paymentMethod === "CASH" ? "CASH" : "RAZORPAY";
 
     // ── Duplicate guard ──
-    const existing = await prisma.registration.findFirst({
-      where: { email, status: { in: ["PENDING", "PAID"] } },
-    });
+    // Serialize concurrent /register calls for the SAME email with a Postgres
+    // advisory lock, so a double-click or two devices can't both pass the
+    // "no existing row" check and each create a row. Only the find-or-create
+    // is in here — the Razorpay API call stays outside the transaction.
+    //
+    // Re-uses a pending row (user hit back after a failed payment, or is
+    // switching between "pay online" and "pay cash" before completing either)
+    // instead of creating a new one; only paymentMethod is updated on reuse.
+    const outcome = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${email}))`;
 
-    if (existing?.status === "PAID") {
-      return res
-        .status(409)
-        .json({ error: "This email has already registered and paid. Check your inbox for the confirmation." });
-    }
+      const existing = await tx.registration.findFirst({
+        where: { email, status: { in: ["PENDING", "PAID"] } },
+      });
 
-    // Re-use a pending row (e.g. user hit back after a failed payment, or
-    // is switching between "pay online" and "pay cash" before completing
-    // either one) instead of creating a new one. Only paymentMethod needs
-    // updating on reuse — the rest of the row is left as originally
-    // submitted, same as before this feature existed.
-    const registration = existing
-      ? existing.paymentMethod === paymentMethod
-        ? existing
-        : await prisma.registration.update({
-            where: { id: existing.id },
-            data: { paymentMethod },
-          })
-      : await prisma.registration.create({
+      if (existing?.status === "PAID") {
+        return { alreadyPaid: true as const };
+      }
+
+      if (!existing) {
+        const row = await tx.registration.create({
           data: {
             name,
             email,
@@ -101,6 +102,27 @@ registerRouter.post("/register", registerLimiter, async (req, res) => {
             amount: WORKSHOP_FEE_RUPEES * 100, // stored in paise
           },
         });
+        return { alreadyPaid: false as const, row };
+      }
+
+      if (existing.paymentMethod === paymentMethod) {
+        return { alreadyPaid: false as const, row: existing };
+      }
+
+      const row = await tx.registration.update({
+        where: { id: existing.id },
+        data: { paymentMethod },
+      });
+      return { alreadyPaid: false as const, row };
+    });
+
+    if (outcome.alreadyPaid) {
+      return res
+        .status(409)
+        .json({ error: "This email has already registered and paid. Check your inbox for the confirmation." });
+    }
+
+    const registration = outcome.row;
 
     // ── Pay cash at event: reserve the seat, no Razorpay order at all ──
     if (paymentMethod === "CASH") {

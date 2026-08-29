@@ -80,15 +80,25 @@ webhookRouter.post("/", async (req, res) => {
       }
 
       if (existing.status !== "PAID") {
-        const registration = await prisma.registration.update({
-          where: { id: existing.id },
-          // Also pin razorpayOrderId to the order that was actually paid — it
-          // may differ from what's on the row if this was a stale-order recovery.
+        // Atomic transition: updateMany with a `status: { not: "PAID" }` guard
+        // so if two payment.captured deliveries land at the same time, exactly
+        // one UPDATE matches (count === 1) and only that one sends the email.
+        // Also pins razorpayOrderId to the order actually paid (matters when
+        // this was a stale-order recovery).
+        const { count } = await prisma.registration.updateMany({
+          where: { id: existing.id, status: { not: "PAID" } },
           data: { status: "PAID", razorpayPaymentId: paymentId, razorpayOrderId: orderId },
         });
-        await sendConfirmationEmail(registration.email, registration.name).catch((e) =>
-          console.error("Email send failed:", e)
-        );
+        if (count === 1) {
+          const registration = await prisma.registration.findUnique({
+            where: { id: existing.id },
+          });
+          if (registration) {
+            await sendConfirmationEmail(registration.email, registration.name).catch((e) =>
+              console.error("Email send failed:", e)
+            );
+          }
+        }
       }
     } else if (event === "payment.failed") {
       // updateMany + status guard so a delayed/out-of-order failed webhook
