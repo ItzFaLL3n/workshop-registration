@@ -19,6 +19,16 @@ const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// /register/count is public and unauthenticated, and the API isn't behind
+// Cloudflare's proxy — cap it so a scripted flood of count() queries can't
+// starve the DB connection pool. Generous: real usage is a handful/minute.
+const countLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // ──────────────────────────────────────────────
 //  GET /register/count  — public, no auth
 //  Returns the number of confirmed-or-reserved registrations: PAID
@@ -26,7 +36,7 @@ const registerLimiter = rateLimit({
 //  count immediately because the seat is considered held as soon as
 //  someone commits to "pay at event" — see WHATFIXED.md #14.
 // ──────────────────────────────────────────────
-registerRouter.get("/register/count", async (_req, res) => {
+registerRouter.get("/register/count", countLimiter, async (_req, res) => {
   try {
     const count = await prisma.registration.count({
       where: {

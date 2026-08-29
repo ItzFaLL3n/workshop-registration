@@ -27,9 +27,15 @@ function matches(token: string, secret: string) {
   return crypto.timingSafeEqual(sha256(token), sha256(secret));
 }
 
+// Brute-force guard for the shared passwords. `skipSuccessfulRequests` means
+// only FAILED auths (401 and other >=400s) count toward the limit — so a
+// valid staff session can do unlimited bulk work (toggling attendance on
+// hundreds of rows at check-in, clearing test rows, CSV pulls) without ever
+// tripping it, while a wrong password is still capped at 30 tries / 15 min / IP.
 const adminLoginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 20,
+  limit: 30,
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -128,36 +134,69 @@ adminRouter.get(
   adminLoginLimiter,
   requireAdminAuth,
   asyncHandler(async (req, res) => {
+    const { status } = req.query;
+    if (status !== undefined && !isValidStatus(status)) {
+      return res.status(400).json({ error: "Invalid status filter." });
+    }
+
+    // Every registration by default (not just PAID) so the export doubles as
+    // the check-in / reconciliation sheet — pass ?status=PAID to narrow it.
     const registrations = await prisma.registration.findMany({
-      where: { status: "PAID" },
+      where: status ? { status } : undefined,
       orderBy: { createdAt: "asc" },
     });
 
-    const header =
-      "Name,Email,Phone,College,Department,Year,Gender,Food Preference,Payment Method,Attended,PaidAt\n";
-    const rows = registrations
-      .map((r) =>
-        [
-          r.name,
-          r.email,
-          r.phone,
-          r.college ?? "",
-          r.department ?? "",
-          r.year ?? "",
-          r.gender ?? "",
-          r.foodPreference ?? "",
-          r.paymentMethod,
-          r.attended ? "Yes" : "No",
-          r.updatedAt.toISOString(),
-        ]
-          .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-          .join(",")
-      )
-      .join("\n");
+    // "30 Aug 2026, 02:15 pm" in IST — readable + sorts sanely in a spreadsheet,
+    // unlike a raw ISO timestamp with milliseconds and a Z.
+    const istDateTime = (d: Date) =>
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }).format(d);
 
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=registrations.csv");
-    res.send(header + rows);
+    const cell = (value: unknown) => {
+      let s = value == null ? "" : String(value);
+      // Neutralise spreadsheet formula injection (=, +, -, @, tab, CR leading).
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return `"${s.replace(/"/g, '""')}"`;
+    };
+
+    const columns: [string, (r: (typeof registrations)[number]) => unknown][] = [
+      ["Name", (r) => r.name],
+      ["Email", (r) => r.email],
+      ["Phone", (r) => r.phone],
+      ["College", (r) => r.college ?? ""],
+      ["Department", (r) => r.department ?? ""],
+      ["Year", (r) => r.year ?? ""],
+      ["Gender", (r) => r.gender ?? ""],
+      ["Food Preference", (r) => r.foodPreference ?? ""],
+      ["Payment Method", (r) => r.paymentMethod],
+      ["Payment Status", (r) => r.status],
+      ["Attendance", (r) => (r.attended ? "Present" : "Absent")],
+      ["Amount (INR)", (r) => (r.amount / 100).toFixed(2)],
+      ["Registered On (IST)", (r) => istDateTime(r.createdAt)],
+      ["Last Updated (IST)", (r) => istDateTime(r.updatedAt)],
+    ];
+
+    const lines = [
+      columns.map(([label]) => cell(label)).join(","),
+      ...registrations.map((r) => columns.map(([, get]) => cell(get(r))).join(",")),
+    ];
+    // Leading BOM so Excel reads it as UTF-8 (names with accents etc.).
+    const csv = "﻿" + lines.join("\r\n") + "\r\n";
+
+    const stamp = new Date().toISOString().slice(0, 10);
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="registrations-${stamp}.csv"`
+    );
+    res.send(csv);
   })
 );
 

@@ -134,7 +134,13 @@ export default function AdminPage() {
           : `${API_URL}/admin/registrations`;
       const res = await fetch(url, { headers: { "x-admin-token": token } });
       if (!res.ok) {
-        setError("Invalid admin password or server error. Please verify credentials.");
+        setError(
+          res.status === 429
+            ? "Too many attempts — wait a minute, then try again."
+            : res.status === 401
+            ? "Wrong password. Use the admin or registration-desk password."
+            : "Couldn't load the dashboard (server error). Try again."
+        );
         setLoading(false);
         return;
       }
@@ -473,6 +479,7 @@ export default function AdminPage() {
             borderColor: "var(--line)",
           }}
         >
+          <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             {/* Access Key Input (admin or registration-team password) */}
             <div className="md:col-span-3 space-y-1.5">
@@ -514,7 +521,7 @@ export default function AdminPage() {
             </div>
 
             {/* Status Filter */}
-            <div className="md:col-span-2 space-y-1.5">
+            <div className="md:col-span-3 space-y-1.5">
               <label
                 htmlFor="admin-filter"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
@@ -546,7 +553,7 @@ export default function AdminPage() {
             </div>
 
             {/* Payment Method Filter */}
-            <div className="md:col-span-2 space-y-1.5">
+            <div className="md:col-span-3 space-y-1.5">
               <label
                 htmlFor="admin-method-filter"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
@@ -577,7 +584,7 @@ export default function AdminPage() {
             </div>
 
             {/* Attendance Filter */}
-            <div className="md:col-span-2 space-y-1.5">
+            <div className="md:col-span-3 space-y-1.5">
               <label
                 htmlFor="admin-attendance-filter"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
@@ -607,12 +614,14 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="md:col-span-3 flex items-center flex-wrap gap-2.5">
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5">
               <button
                 onClick={loadData}
                 disabled={loading || !token}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
                 style={{
                   background: "var(--accent)",
                 }}

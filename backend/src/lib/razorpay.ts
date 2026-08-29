@@ -21,19 +21,31 @@ interface CreateOrderInput {
 }
 
 export async function createRazorpayOrder(input: CreateOrderInput) {
-  const res = await fetch(`${RZP_BASE_URL}/orders`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authHeader(),
-    },
-    body: JSON.stringify({
-      amount: Math.round(input.amountRupees * 100), // paise
-      currency: "INR",
-      receipt: input.receipt,
-      notes: input.notes,
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${RZP_BASE_URL}/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: authHeader(),
+      },
+      body: JSON.stringify({
+        amount: Math.round(input.amountRupees * 100), // paise
+        currency: "INR",
+        receipt: input.receipt,
+        notes: input.notes,
+      }),
+      // Node's fetch has no default timeout — without this a stalled Razorpay
+      // API would hang the /register request indefinitely and pile up under load.
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch (err) {
+    throw new Error(
+      `Razorpay order request failed (timeout or network): ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+  }
 
   if (!res.ok) {
     const errBody = await res.text();
@@ -45,6 +57,27 @@ export async function createRazorpayOrder(input: CreateOrderInput) {
     amount: number;
     currency: string;
     status: string;
+  }>;
+}
+
+/**
+ * Fetches a single order by id. Used by the webhook to recover the owning
+ * registration when a payment lands on an order whose id is no longer on any
+ * row (the user pressed "Register & Pay" again, which mints a fresh order and
+ * overwrites razorpayOrderId). The order still carries our notes + receipt.
+ */
+export async function fetchRazorpayOrder(orderId: string) {
+  const res = await fetch(`${RZP_BASE_URL}/orders/${orderId}`, {
+    headers: { Authorization: authHeader() },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) {
+    throw new Error(`Razorpay order fetch failed: ${res.status} ${await res.text()}`);
+  }
+  return res.json() as Promise<{
+    id: string;
+    receipt: string | null;
+    notes: Record<string, string> | null;
   }>;
 }
 

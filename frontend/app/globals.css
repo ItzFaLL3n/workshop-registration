@@ -228,8 +228,8 @@ fieldset { border: none; }
 }
 
 .logo-img-wrap {
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -429,8 +429,8 @@ fieldset { border: none; }
     gap: 5px;
   }
   .logo-img-wrap {
-    width: 33px;
-    height: 33px;
+    width: 38px;
+    height: 38px;
   }
   .brand-title {
     font-size: 13px;

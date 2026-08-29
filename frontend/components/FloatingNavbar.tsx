@@ -27,18 +27,8 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
               <Image
                 src="/college-logo.png"
                 alt="Sacred Heart College logo"
-                width={40}
-                height={40}
-                style={{ objectFit: "contain" }}
-                priority
-              />
-            </div>
-            <div className="logo-img-wrap">
-              <Image
-                src="/department-logo.png"
-                alt="Department of Computer Applications (BCA) logo"
-                width={40}
-                height={40}
+                width={48}
+                height={48}
                 style={{ objectFit: "contain" }}
                 priority
               />

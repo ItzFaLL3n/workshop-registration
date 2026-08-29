@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
-import { verifyRazorpayWebhook } from "../lib/razorpay.js";
+import { verifyRazorpayWebhook, fetchRazorpayOrder } from "../lib/razorpay.js";
 import { sendConfirmationEmail } from "../lib/email.js";
 
 export const webhookRouter = Router();
@@ -33,12 +33,34 @@ webhookRouter.post("/", async (req, res) => {
       // Razorpay retries webhooks on a slow/failed response, so guard against
       // re-sending the confirmation email on a retry by only acting on the
       // transition into PAID, not every payment.captured delivery.
-      const existing = await prisma.registration.findFirst({
+      let existing = await prisma.registration.findFirst({
         where: { razorpayOrderId: orderId },
       });
 
+      // The row's razorpayOrderId gets overwritten whenever the user presses
+      // "Register & Pay" again (each press mints a fresh order). If a payment
+      // lands on one of those older orders, no row matches by order id — so
+      // recover the registration from the order's own notes/receipt, which
+      // still point back to it. Without this, the payment would be silently
+      // dropped (money in, registration never marked PAID).
       if (!existing) {
-        // Unknown order — a stray test event, or a payment for an order we
+        try {
+          const order = await fetchRazorpayOrder(orderId);
+          const regId =
+            order.notes?.registrationId ||
+            (order.receipt && order.receipt.startsWith("wr_")
+              ? order.receipt.slice(3)
+              : undefined);
+          if (regId) {
+            existing = await prisma.registration.findUnique({ where: { id: regId } });
+          }
+        } catch (e) {
+          console.error(`Webhook: recovery lookup for order ${orderId} failed:`, e);
+        }
+      }
+
+      if (!existing) {
+        // Genuinely unknown — a stray test event, or a payment for an order we
         // never stored. Ack with 200 so Razorpay stops retrying something we
         // can never match; nothing to do.
         console.warn(`Webhook payment.captured for unknown order ${orderId} — ignoring`);
@@ -60,7 +82,9 @@ webhookRouter.post("/", async (req, res) => {
       if (existing.status !== "PAID") {
         const registration = await prisma.registration.update({
           where: { id: existing.id },
-          data: { status: "PAID", razorpayPaymentId: paymentId },
+          // Also pin razorpayOrderId to the order that was actually paid — it
+          // may differ from what's on the row if this was a stale-order recovery.
+          data: { status: "PAID", razorpayPaymentId: paymentId, razorpayOrderId: orderId },
         });
         await sendConfirmationEmail(registration.email, registration.name).catch((e) =>
           console.error("Email send failed:", e)
