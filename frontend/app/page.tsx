@@ -1,7 +1,7 @@
 import RegistrationForm from "@/components/RegistrationForm";
 import ClientScripts from "@/components/ClientScripts";
 import dynamic from "next/dynamic";
-import AgentWorkflowDiagram from "@/components/AgentWorkflowDiagram";
+import EventCountdown from "@/components/EventCountdown";
 import Image from "next/image";
 import FloatingNavbar from "@/components/FloatingNavbar";
 import {
@@ -42,7 +42,7 @@ export default function HomePage() {
             <div className="hero-left-col">
               <div className="hero-eyebrow-pill">
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "inline-block" }} />
-                <span>INTER-COLLEGIATE WORKSHOP • 27TH FEB 2026</span>
+                <span>INTER-COLLEGIATE WORKSHOP • 7TH SEPT 2026</span>
               </div>
 
               <h1 className="hero-title-display">
@@ -55,7 +55,7 @@ export default function HomePage() {
               </div>
 
               <p className="hero-desc-para">
-                The <strong>Department of Computer Applications (BCA)</strong> at Sacred Heart College cordially invites you to an intensive hands-on workshop on <strong>February 27, 2026</strong> at <strong>Kamarajar Arangam</strong> exploring Large Language Model Agents, autonomous reasoning, and modern AI toolchains.
+                The <strong>Department of Computer Applications (BCA)</strong> at Sacred Heart College cordially invites you to an intensive hands-on workshop on <strong>September 7, 2026</strong> at <strong>Kamarajar Arangam</strong> exploring Large Language Model Agents, autonomous reasoning, and modern AI toolchains.
               </p>
 
               <p className="hero-desc-para">
@@ -84,9 +84,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column — Agent workflow diagram */}
+            {/* Right Column — event countdown (replaces the workflow diagram on desktop) */}
             <div className="hero-right-col">
-              <AgentWorkflowDiagram />
+              <EventCountdown />
             </div>
           </div>
         </section>
@@ -662,7 +662,8 @@ export default function HomePage() {
             <div className="side-info-card">
               <h4>Before you register</h4>
               <ul className="side-info-list">
-                <li><strong>Event Date:</strong> February 27, 2026 (09:30 AM – 04:30 PM).</li>
+                <li><strong>Event Date:</strong> Sunday, September 7, 2026 (09:30 AM – 04:30 PM IST).</li>
+                <li><strong>Registration closes:</strong> September 5, 2026 — two days before the event.</li>
                 <li><strong>Venue:</strong> Kamarajar Arangam, Sacred Heart College (Autonomous).</li>
                 <li>Use your official full name as per your college identity card.</li>
                 <li>One registration per participant email address.</li>
@@ -692,7 +693,8 @@ export default function HomePage() {
                   Live Registration Status
                 </p>
                 <p style={{ fontSize: 13.5, fontWeight: 550, color: "var(--ink)" }}>
-                  Registrations are actively processed in real-time.
+                  Registrations are processed in real-time. Online registration closes on
+                  September 5, 2026 (two days before the event).
                 </p>
               </div>
             </div>
@@ -734,11 +736,11 @@ export default function HomePage() {
           <div className="footer-top-row">
             <div className="footer-brand-col">
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
-                  <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                <div className="logo-img-wrap" style={{ width: 38, height: 38 }}>
+                  <Image src="/college-logo.png" alt="Sacred Heart College logo" width={40} height={40} style={{ objectFit: "contain" }} />
                 </div>
-                <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
-                  <Image src="/department-logo.png" alt="Department of Computer Applications (BCA) logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                <div className="logo-img-wrap" style={{ width: 38, height: 38 }}>
+                  <Image src="/department-logo.png" alt="Department of Computer Applications (BCA) logo" width={40} height={40} style={{ objectFit: "contain" }} />
                 </div>
               </div>
               <span

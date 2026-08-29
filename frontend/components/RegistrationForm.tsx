@@ -184,6 +184,37 @@ export default function RegistrationForm() {
       onSubmit={handleSubmit}
       noValidate
     >
+      {/* Registration window notice */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "10px 14px",
+          marginBottom: 18,
+          borderRadius: "var(--r-md, 12px)",
+          background: "var(--accent-light)",
+          border: "1px solid var(--accent-line)",
+          fontSize: 12.5,
+          lineHeight: 1.5,
+          color: "var(--ink-2)",
+        }}
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "var(--accent)",
+            flexShrink: 0,
+          }}
+        />
+        <span>
+          Online registration closes <strong>September 5, 2026</strong> — two days
+          before the event on September 7.
+        </span>
+      </div>
+
       {/* Full Name */}
       <div className={fieldClass("name")}>
         <label htmlFor="fullName">Full Name</label>

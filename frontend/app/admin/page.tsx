@@ -50,6 +50,17 @@ interface Registration {
 }
 
 const STATUS_OPTIONS = ["PENDING", "PAID", "FAILED", "EXPIRED"] as const;
+
+// Kept in sync with the public registration form (components/RegistrationForm.tsx)
+// so walk-ins and edits store the same canonical values.
+const YEAR_OPTIONS = ["1st Year", "2nd Year", "3rd Year", "Final Year"] as const;
+const GENDER_OPTIONS = ["Male", "Female", "Other"] as const;
+const FOOD_OPTIONS = ["Vegetarian", "Non-Vegetarian"] as const;
+const SELECT_OPTIONS: Partial<Record<keyof WalkInForm, readonly string[]>> = {
+  year: YEAR_OPTIONS,
+  gender: GENDER_OPTIONS,
+  foodPreference: FOOD_OPTIONS,
+};
 const EDIT_FIELDS: { key: keyof WalkInForm; label: string; type: string }[] = [
   { key: "name", label: "Full name", type: "text" },
   { key: "email", label: "Email", type: "email" },
@@ -673,26 +684,50 @@ export default function AdminPage() {
                   { field: "phone" as const, placeholder: "10-digit phone", type: "tel", autoComplete: "tel" },
                   { field: "college" as const, placeholder: "College", type: "text", autoComplete: "organization" },
                   { field: "department" as const, placeholder: "Department", type: "text" },
-                  { field: "year" as const, placeholder: "Year (e.g. 2nd Year)", type: "text" },
-                  { field: "gender" as const, placeholder: "Gender", type: "text" },
-                  { field: "foodPreference" as const, placeholder: "Food Preference", type: "text" },
-                ].map(({ field, placeholder, type, autoComplete }) => (
-                  <input
-                    key={field}
-                    type={type}
-                    placeholder={placeholder}
-                    autoComplete={autoComplete}
-                    value={walkInForm[field]}
-                    onChange={(e) => setWalkInField(field, e.target.value)}
-                    required={field === "name" || field === "email" || field === "phone"}
-                    className="px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all"
-                    style={{
-                      background: "var(--surface-1)",
-                      borderColor: "var(--line)",
-                      color: "var(--ink)",
-                    }}
-                  />
-                ))}
+                  { field: "year" as const, placeholder: "Select year", type: "text" },
+                  { field: "gender" as const, placeholder: "Select gender", type: "text" },
+                  { field: "foodPreference" as const, placeholder: "Select food preference", type: "text" },
+                ].map(({ field, placeholder, type, autoComplete }) => {
+                  const options = SELECT_OPTIONS[field];
+                  const controlClass =
+                    "px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all";
+                  const controlStyle = {
+                    background: "var(--surface-1)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  } as const;
+                  if (options) {
+                    return (
+                      <select
+                        key={field}
+                        value={walkInForm[field]}
+                        onChange={(e) => setWalkInField(field, e.target.value)}
+                        className={`${controlClass} appearance-none cursor-pointer`}
+                        style={controlStyle}
+                      >
+                        <option value="">{placeholder}</option>
+                        {options.map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  }
+                  return (
+                    <input
+                      key={field}
+                      type={type}
+                      placeholder={placeholder}
+                      autoComplete={autoComplete}
+                      value={walkInForm[field]}
+                      onChange={(e) => setWalkInField(field, e.target.value)}
+                      required={field === "name" || field === "email" || field === "phone"}
+                      className={controlClass}
+                      style={controlStyle}
+                    />
+                  );
+                })}
 
                 <button
                   type="submit"
@@ -867,8 +902,8 @@ export default function AdminPage() {
               </div>
 
               {/* Data Table */}
-              <div className="overflow-x-auto no-scrollbar">
-                <table className="w-full border-collapse text-left text-xs sm:text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[960px] border-collapse text-left text-xs sm:text-sm">
                   <thead>
                     <tr
                       className="border-b text-[11px] font-mono uppercase tracking-wider"
@@ -878,16 +913,21 @@ export default function AdminPage() {
                         color: "var(--ink-4)",
                       }}
                     >
-                      <th className="py-3 px-4 font-semibold">Participant</th>
-                      <th className="py-3 px-4 font-semibold">Contact Info</th>
-                      <th className="py-3 px-4 font-semibold">College &amp; Dept</th>
-                      <th className="py-3 px-4 font-semibold">Year / Gender</th>
-                      <th className="py-3 px-4 font-semibold">Food</th>
-                      <th className="py-3 px-4 font-semibold">Method</th>
-                      <th className="py-3 px-4 font-semibold">Status</th>
-                      <th className="py-3 px-4 font-semibold">Check-in</th>
-                      <th className="py-3 px-4 font-semibold">Date</th>
-                      <th className="py-3 px-4 font-semibold">Actions</th>
+                      <th className="py-3 px-3 font-semibold">Participant</th>
+                      <th className="py-3 px-3 font-semibold">Contact Info</th>
+                      <th className="py-3 px-3 font-semibold">College &amp; Dept</th>
+                      <th className="py-3 px-3 font-semibold">Year / Gender</th>
+                      <th className="py-3 px-3 font-semibold">Food</th>
+                      <th className="py-3 px-3 font-semibold">Method</th>
+                      <th className="py-3 px-3 font-semibold">Status</th>
+                      <th className="py-3 px-3 font-semibold">Check-in</th>
+                      <th className="py-3 px-3 font-semibold">Date</th>
+                      <th
+                        className="py-3 px-3 font-semibold sticky right-0 z-10"
+                        style={{ background: "var(--surface-2)", boxShadow: "-8px 0 8px -6px rgba(0,0,0,0.25)" }}
+                      >
+                        Actions
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y" style={{ borderColor: "var(--line)" }}>
@@ -897,7 +937,7 @@ export default function AdminPage() {
                         className="transition-colors hover:bg-zinc-500/5"
                       >
                         {/* Participant Name */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-3 px-3">
                           <span className="font-semibold block" style={{ color: "var(--ink)" }}>
                             {r.name}
                           </span>
@@ -907,10 +947,10 @@ export default function AdminPage() {
                         </td>
 
                         {/* Contact */}
-                        <td className="py-3.5 px-4 space-y-0.5">
-                          <div className="flex items-center gap-1.5 text-xs font-mono" style={{ color: "var(--ink-2)" }}>
-                            <Mail className="w-3 h-3 text-zinc-500" />
-                            <span>{r.email}</span>
+                        <td className="py-3 px-3 space-y-0.5">
+                          <div className="flex items-center gap-1.5 text-xs font-mono max-w-[220px]" style={{ color: "var(--ink-2)" }}>
+                            <Mail className="w-3 h-3 text-zinc-500 flex-shrink-0" />
+                            <span className="truncate" title={r.email}>{r.email}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
                             <Phone className="w-3 h-3 text-zinc-500" />
@@ -919,7 +959,7 @@ export default function AdminPage() {
                         </td>
 
                         {/* College & Department */}
-                        <td className="py-3.5 px-4 space-y-0.5 max-w-[200px]">
+                        <td className="py-3 px-3 space-y-0.5 max-w-[200px]">
                           <div className="flex items-center gap-1.5 text-xs truncate" style={{ color: "var(--ink-2)" }}>
                             <Building2 className="w-3 h-3 text-zinc-500 flex-shrink-0" />
                             <span className="truncate" title={r.college ?? ""}>{r.college ?? "—"}</span>
@@ -931,14 +971,14 @@ export default function AdminPage() {
                         </td>
 
                         {/* Year / Gender */}
-                        <td className="py-3.5 px-4 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
-                          <span>{r.year ? `${r.year} Yr` : "—"}</span>
+                        <td className="py-3 px-3 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
+                          <span>{r.year ?? "—"}</span>
                           <span className="mx-1 text-zinc-600">/</span>
                           <span>{r.gender ?? "—"}</span>
                         </td>
 
                         {/* Food */}
-                        <td className="py-3.5 px-4 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
+                        <td className="py-3 px-3 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
                           <span className="inline-flex items-center gap-1">
                             <Utensils className="w-3 h-3 text-zinc-500" />
                             {r.foodPreference ?? "Standard"}
@@ -946,7 +986,7 @@ export default function AdminPage() {
                         </td>
 
                         {/* Payment Method Badge */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-3 px-3">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wide uppercase border ${
                               r.paymentMethod === "CASH"
@@ -960,7 +1000,7 @@ export default function AdminPage() {
                         </td>
 
                         {/* Status Badge */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-3 px-3">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wide uppercase border ${
                               r.status === "PAID"
@@ -978,7 +1018,7 @@ export default function AdminPage() {
                         </td>
 
                         {/* Check-in toggle */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-3 px-3">
                           <button
                             onClick={() => toggleAttendance(r)}
                             disabled={togglingId === r.id}
@@ -995,7 +1035,7 @@ export default function AdminPage() {
                         </td>
 
                         {/* Date */}
-                        <td className="py-3.5 px-4 text-xs font-mono whitespace-nowrap" style={{ color: "var(--ink-4)" }}>
+                        <td className="py-3 px-3 text-xs font-mono whitespace-nowrap" style={{ color: "var(--ink-4)" }}>
                           {new Date(r.createdAt).toLocaleDateString("en-IN", {
                             day: "2-digit",
                             month: "short",
@@ -1004,13 +1044,16 @@ export default function AdminPage() {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
+                        <td
+                          className="py-3 px-3 whitespace-nowrap sticky right-0 z-10"
+                          style={{ background: "var(--surface-1)", boxShadow: "-8px 0 8px -6px rgba(0,0,0,0.25)" }}
+                        >
                           <div className="flex items-center gap-1.5">
                             {r.paymentMethod === "CASH" && r.status === "PENDING" && (
                               <button
                                 onClick={() => markCashPaid(r.id)}
                                 disabled={markingId === r.id}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold border shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold border shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                                 style={{
                                   background: "var(--accent-light)",
                                   borderColor: "var(--accent-line)",
@@ -1047,7 +1090,7 @@ export default function AdminPage() {
                             {!(data?.role === "team" && r.paymentMethod === "RAZORPAY") && (
                               <button
                                 onClick={() => openEdit(r)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium border transition-all cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border transition-all cursor-pointer"
                                 style={{
                                   background: "var(--surface-2)",
                                   borderColor: "var(--line)",
@@ -1063,7 +1106,7 @@ export default function AdminPage() {
                               <button
                                 onClick={() => deleteRow(r)}
                                 disabled={deletingId === r.id}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium border transition-all disabled:opacity-50 cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border transition-all disabled:opacity-50 cursor-pointer"
                                 style={{
                                   background: "rgba(239, 68, 68, 0.08)",
                                   borderColor: "rgba(239, 68, 68, 0.3)",
@@ -1127,19 +1170,38 @@ export default function AdminPage() {
               </p>
 
               <form onSubmit={submitEdit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {EDIT_FIELDS.map(({ key, label, type }) => (
-                  <label key={key} className="flex flex-col gap-1 text-[11px] font-mono" style={{ color: "var(--ink-3)" }}>
-                    {label}
-                    <input
-                      type={type}
-                      value={editForm[key]}
-                      onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.value }))}
-                      required={key === "name" || key === "email" || key === "phone"}
-                      className="px-3 py-2 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all"
-                      style={{ background: "var(--surface-2)", borderColor: "var(--line)", color: "var(--ink)" }}
-                    />
-                  </label>
-                ))}
+                {EDIT_FIELDS.map(({ key, label, type }) => {
+                  const options = SELECT_OPTIONS[key];
+                  return (
+                    <label key={key} className="flex flex-col gap-1 text-[11px] font-mono" style={{ color: "var(--ink-3)" }}>
+                      {label}
+                      {options ? (
+                        <select
+                          value={editForm[key]}
+                          onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                          className="px-3 py-2 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all appearance-none cursor-pointer"
+                          style={{ background: "var(--surface-2)", borderColor: "var(--line)", color: "var(--ink)" }}
+                        >
+                          <option value="">—</option>
+                          {options.map((o) => (
+                            <option key={o} value={o}>
+                              {o}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type={type}
+                          value={editForm[key]}
+                          onChange={(e) => setEditForm((prev) => ({ ...prev, [key]: e.target.value }))}
+                          required={key === "name" || key === "email" || key === "phone"}
+                          className="px-3 py-2 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all"
+                          style={{ background: "var(--surface-2)", borderColor: "var(--line)", color: "var(--ink)" }}
+                        />
+                      )}
+                    </label>
+                  );
+                })}
 
                 {editError && (
                   <div

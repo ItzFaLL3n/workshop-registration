@@ -27,8 +27,8 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
               <Image
                 src="/college-logo.png"
                 alt="Sacred Heart College logo"
-                width={32}
-                height={32}
+                width={40}
+                height={40}
                 style={{ objectFit: "contain" }}
                 priority
               />
@@ -37,8 +37,8 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
               <Image
                 src="/department-logo.png"
                 alt="Department of Computer Applications (BCA) logo"
-                width={32}
-                height={32}
+                width={40}
+                height={40}
                 style={{ objectFit: "contain" }}
                 priority
               />

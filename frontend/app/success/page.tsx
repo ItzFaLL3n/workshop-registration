@@ -411,7 +411,7 @@ function SuccessContent() {
                 </span>
               </div>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--ink)" }}>
-                February 27, 2026
+                September 7, 2026
               </div>
               <div style={{ fontSize: 12.5, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 6 }}>
                 <Clock style={{ width: 13, height: 13 }} />
