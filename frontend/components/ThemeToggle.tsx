@@ -5,20 +5,25 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Sun, Moon } from "lucide-react";
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(true); // dark is default
+  // `mounted` gate: SSR and the first client render can't know the saved
+  // theme, so render a neutral placeholder until the effect runs. Without
+  // this the button flashes the wrong icon/label on light-mode loads.
+  const [mounted, setMounted] = useState(false);
+  const [dark, setDark] = useState(true); // dark is the site default
 
-  /* Read saved preference on mount and listen to changes */
   useEffect(() => {
     function checkTheme() {
-      const isLight = document.documentElement.getAttribute("data-theme") === "light" || localStorage.getItem("theme") === "light";
+      const isLight =
+        document.documentElement.getAttribute("data-theme") === "light" ||
+        localStorage.getItem("theme") === "light";
       setDark(!isLight);
     }
     checkTheme();
+    setMounted(true);
 
     const handleThemeChange = () => checkTheme();
     window.addEventListener("themechange", handleThemeChange);
     window.addEventListener("storage", handleThemeChange);
-
     return () => {
       window.removeEventListener("themechange", handleThemeChange);
       window.removeEventListener("storage", handleThemeChange);
@@ -28,16 +33,28 @@ export default function ThemeToggle() {
   function toggle() {
     const next = !dark;
     setDark(next);
+
+    const root = document.documentElement;
+    // Suppress every transition for one frame so the palette swap is instant
+    // instead of dozens of elements sweeping colours at slightly different
+    // speeds (the "glitch" on dense views like the form / admin table).
+    root.classList.add("theme-switching");
+
     if (next) {
-      document.documentElement.removeAttribute("data-theme");
-      document.documentElement.classList.add("dark");
+      root.removeAttribute("data-theme");
       localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.setAttribute("data-theme", "light");
-      document.documentElement.classList.remove("dark");
+      root.setAttribute("data-theme", "light");
       localStorage.setItem("theme", "light");
     }
-    window.dispatchEvent(new CustomEvent("themechange", { detail: { theme: next ? "dark" : "light" } }));
+
+    window.dispatchEvent(
+      new CustomEvent("themechange", { detail: { theme: next ? "dark" : "light" } })
+    );
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => root.classList.remove("theme-switching"));
+    });
   }
 
   return (
@@ -45,6 +62,7 @@ export default function ThemeToggle() {
       onClick={toggle}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       className="theme-toggle-btn"
+      style={!mounted ? { visibility: "hidden" } : undefined}
     >
       <AnimatePresence mode="wait" initial={false}>
         {dark ? (
@@ -71,9 +89,7 @@ export default function ThemeToggle() {
           </motion.span>
         )}
       </AnimatePresence>
-      <span className="theme-toggle-label">
-        {dark ? "Light" : "Dark"}
-      </span>
+      <span className="theme-toggle-label">{dark ? "Light" : "Dark"}</span>
     </button>
   );
 }

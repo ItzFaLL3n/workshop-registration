@@ -435,7 +435,7 @@ export default function AdminPage() {
       <header
         className="sticky top-0 z-40 border-b backdrop-blur-xl transition-colors duration-200"
         style={{
-          background: "rgba(18, 18, 22, 0.75)",
+          background: "var(--header-bg)",
           borderColor: "var(--line)",
         }}
       >
@@ -650,52 +650,53 @@ export default function AdminPage() {
 
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2.5">
-              <button
-                onClick={loadData}
-                disabled={loading || !token}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
-                style={{
-                  background: "var(--accent)",
-                }}
-              >
-                <RotateCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-                <span>{loading ? "Fetching Data…" : "Load Dashboard"}</span>
-              </button>
+          {/* Action row — divider keeps it visually distinct from the filters */}
+          <div
+            className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2.5 pt-4 border-t"
+            style={{ borderColor: "var(--line)" }}
+          >
+            <button
+              onClick={loadData}
+              disabled={loading || !token}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white shadow-md transition-all disabled:opacity-50 cursor-pointer"
+              style={{ background: "var(--accent)" }}
+            >
+              <RotateCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              <span>{loading ? "Fetching Data…" : "Load Dashboard"}</span>
+            </button>
 
+            <button
+              onClick={() => setShowWalkIn((v) => !v)}
+              disabled={!token || !data}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border shadow-sm transition-all disabled:opacity-40 cursor-pointer"
+              style={{
+                background: "var(--surface-2)",
+                borderColor: "var(--line)",
+                color: "var(--ink-2)",
+              }}
+              title="Add a walk-in cash registration"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Add Walk-in</span>
+            </button>
+
+            {isAdmin && (
               <button
-                onClick={() => setShowWalkIn((v) => !v)}
+                onClick={downloadCsv}
                 disabled={!token || !data}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border shadow-sm transition-all disabled:opacity-40 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border shadow-sm transition-all disabled:opacity-40 cursor-pointer sm:ml-auto"
                 style={{
                   background: "var(--surface-2)",
                   borderColor: "var(--line)",
                   color: "var(--ink-2)",
                 }}
-                title="Add a walk-in cash registration"
+                title="Download CSV Spreadsheet"
               >
-                <UserPlus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Walk-in</span>
+                <Download className="w-4 h-4" />
+                <span>Export CSV</span>
               </button>
-
-              {isAdmin && (
-                <button
-                  onClick={downloadCsv}
-                  disabled={!token || !data}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm border shadow-sm transition-all disabled:opacity-40 cursor-pointer"
-                  style={{
-                    background: "var(--surface-2)",
-                    borderColor: "var(--line)",
-                    color: "var(--ink-2)",
-                  }}
-                  title="Download CSV Spreadsheet"
-                >
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Export CSV</span>
-                </button>
-              )}
-            </div>
+            )}
+          </div>
           </div>
 
           {/* Walk-in Registration Form */}

@@ -45,41 +45,7 @@ export default function ClientScripts() {
     handleScrollNav();
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    /* ── 2. MOBILE HAMBURGER TOGGLE ─────────────────────── */
-    const hamburger = document.getElementById("hamburger-btn");
-    const mobileMenu = document.getElementById("mobile-menu");
-
-    function toggleMenu() {
-      if (!hamburger || !mobileMenu) return;
-      const isOpen = mobileMenu.classList.toggle("open");
-      hamburger.setAttribute("aria-expanded", String(isOpen));
-      const spans = hamburger.querySelectorAll("span");
-      if (isOpen) {
-        (spans[0] as HTMLElement).style.transform = "translateY(6.5px) rotate(45deg)";
-        (spans[1] as HTMLElement).style.opacity = "0";
-        (spans[2] as HTMLElement).style.transform = "translateY(-6.5px) rotate(-45deg)";
-      } else {
-        spans.forEach((s) => {
-          (s as HTMLElement).style.transform = "";
-          (s as HTMLElement).style.opacity = "";
-        });
-      }
-    }
-
-    function closeMenu() {
-      if (!hamburger || !mobileMenu) return;
-      mobileMenu.classList.remove("open");
-      hamburger.setAttribute("aria-expanded", "false");
-      hamburger.querySelectorAll("span").forEach((s) => {
-        (s as HTMLElement).style.transform = "";
-        (s as HTMLElement).style.opacity = "";
-      });
-    }
-
-    hamburger?.addEventListener("click", toggleMenu);
-    mobileMenu?.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeMenu));
-
-    /* ── 3. SCROLL-REVEAL ───────────────────────────────── */
+    /* ── 2. SCROLL-REVEAL ───────────────────────────────── */
     const reveals = document.querySelectorAll<HTMLElement>(".reveal");
     const io = new IntersectionObserver(
       (entries) => {
@@ -94,7 +60,10 @@ export default function ClientScripts() {
     );
     reveals.forEach((el) => io.observe(el));
 
-    /* ── 4. SMOOTH ANCHOR SCROLL ────────────────────────── */
+    /* ── 3. SMOOTH ANCHOR SCROLL ────────────────────────── */
+    // Note: the mobile menu is fully React-controlled in FloatingNavbar (its
+    // own useState + per-link onClick that closes it) — no imperative
+    // hamburger wiring here, or the two fight over the `.open` class.
     function handleAnchorClick(e: MouseEvent) {
       const target = (e.target as HTMLElement).closest('a[href^="#"]');
       if (!target) return;
@@ -106,14 +75,25 @@ export default function ClientScripts() {
         const headerH = header ? header.offsetHeight : 60;
         const top = el.getBoundingClientRect().top + window.pageYOffset - headerH - 16;
         window.scrollTo({ top, behavior: "smooth" });
-        closeMenu();
       }
     }
     document.addEventListener("click", handleAnchorClick);
 
+    /* ── 4. DEEP-LINK ON LOAD (e.g. arriving at /#registration) ── */
+    if (window.location.hash && window.location.hash.length > 1) {
+      const el = document.querySelector(window.location.hash);
+      if (el) {
+        // let layout settle, then scroll with the sticky-header offset
+        setTimeout(() => {
+          const headerH = header ? header.offsetHeight : 60;
+          const top = el.getBoundingClientRect().top + window.pageYOffset - headerH - 16;
+          window.scrollTo({ top, behavior: "auto" });
+        }, 60);
+      }
+    }
+
     return () => {
       window.removeEventListener("scroll", onScroll);
-      hamburger?.removeEventListener("click", toggleMenu);
       document.removeEventListener("click", handleAnchorClick);
       io.disconnect();
     };

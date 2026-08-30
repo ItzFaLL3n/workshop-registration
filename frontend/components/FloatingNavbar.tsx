@@ -14,8 +14,12 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
   const isInstallPage = currentPath.startsWith("/install");
   const isLivePage = currentPath.startsWith("/live");
 
-  const overviewHref = isInstallPage ? "/#overview" : "#overview";
-  const registrationHref = isInstallPage ? "/#registration" : "#registration";
+  // The #overview / #registration sections only exist on the homepage. On every
+  // other route these must be absolute ("/#overview") so the link navigates
+  // home first — a bare "#overview" on /live or /success just does nothing.
+  const isHome = currentPath === "/" || currentPath === "";
+  const overviewHref = isHome ? "#overview" : "/#overview";
+  const registrationHref = isHome ? "#registration" : "/#registration";
 
   return (
     <header className="site-header" id="site-header">

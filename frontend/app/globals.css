@@ -109,6 +109,16 @@ button, input, select, textarea { font-family: inherit; }
 ::selection { background: var(--accent-light); color: var(--accent); }
 fieldset { border: none; }
 
+/* While the theme toggle flips data-theme, kill every transition for one
+   frame so the whole palette swaps at once instead of many elements easing
+   colours at different rates (looked like a glitch on the form / admin table). */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
 /* ── Utility ─────────────────────────────────────────────────── */
 .l-inner {
   max-width: var(--max-w);

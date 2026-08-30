@@ -7,7 +7,6 @@ import FloatingNavbar from "@/components/FloatingNavbar";
 import {
   Compass,
   Target,
-  Sparkles,
   Eye,
   Rocket,
   CheckCircle2,
@@ -467,180 +466,147 @@ export default function HomePage() {
 
         <hr className="section-divider" />
 
-        {/* ── 7. ABOUT THE RESOURCE PERSON (Right after Mission & Vision) ── */}
+        {/* ── 7. RESOURCE PERSONS (Right after Mission & Vision) ── */}
         <section className="section-container" id="speaker">
           <div className="section-head">
-            <span className="section-eyebrow">Keynote &amp; Workshop Leader</span>
-            <h2 className="section-title">About the Resource Person</h2>
+            <span className="section-eyebrow">Industry Mentors</span>
+            <h2 className="section-title">Resource Persons</h2>
             <p className="section-desc">
-              Learn directly from an experienced AI practitioner and software engineer.
+              The hands-on sessions are led by two practising software engineers.
             </p>
           </div>
 
           <div
             style={{
-              background: "var(--surface-1)",
-              border: "1px solid var(--line)",
-              borderRadius: 24,
-              padding: "clamp(28px, 4vw, 44px)",
-              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.3)",
-              position: "relative",
-              overflow: "hidden",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: 24,
             }}
           >
-            {/* Ambient top glow */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "70%",
-                height: 120,
-                background: "radial-gradient(ellipse at 50% 0%, rgba(22, 163, 107, 0.18) 0%, transparent 70%)",
-                pointerEvents: "none",
-              }}
-            />
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr",
-                gap: 32,
-                alignItems: "center",
-                position: "relative",
-                zIndex: 2,
-              }}
-              className="md:grid-cols-12"
-            >
-              {/* Speaker Avatar & Badges */}
-              <div className="md:col-span-4 flex flex-col items-center text-center">
+            {[
+              {
+                initials: "PD",
+                name: "Mr. Prabhakaran Dasarathan",
+                role: "Manager – Software Engineering Development",
+                org: "Planview India Pvt. Ltd.",
+                bio: "An experienced technology professional specializing in software engineering, application development, system design, and modern technologies.",
+                Icon: Code2,
+              },
+              {
+                initials: "DM",
+                name: "Mr. Dayanithi Manimaran",
+                role: "Senior Software Engineer",
+                org: "GAKBA Tech AI Private Limited",
+                bio: "A skilled software professional with expertise in Artificial Intelligence, software development, emerging technologies, and real-world AI applications.",
+                Icon: Cpu,
+              },
+            ].map((p) => (
+              <div
+                key={p.name}
+                style={{
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 20,
+                  padding: "clamp(24px, 3.5vw, 34px)",
+                  boxShadow: "0 14px 36px rgba(0, 0, 0, 0.22)",
+                  position: "relative",
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 16,
+                }}
+              >
+                {/* Ambient corner glow */}
                 <div
                   style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: "50%",
-                    background: "var(--surface-2)",
-                    border: "2px solid var(--accent)",
-                    boxShadow: "0 0 32px rgba(22, 163, 107, 0.28)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: 18,
-                    position: "relative",
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: 140,
+                    height: 140,
+                    background:
+                      "radial-gradient(circle at 100% 0%, rgba(22, 163, 107, 0.14) 0%, transparent 70%)",
+                    pointerEvents: "none",
                   }}
-                >
-                  <Brain style={{ width: 54, height: 54, color: "var(--accent)" }} />
-                  <span
+                />
+
+                <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative", zIndex: 2 }}>
+                  <div
                     style={{
-                      position: "absolute",
-                      bottom: 4,
-                      right: 4,
-                      width: 24,
-                      height: 24,
+                      width: 60,
+                      height: 60,
                       borderRadius: "50%",
-                      background: "var(--accent)",
-                      border: "2px solid var(--surface-1)",
+                      background: "var(--accent-light)",
+                      border: "1px solid var(--accent-line)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "#ffffff",
+                      flexShrink: 0,
+                      fontFamily: "var(--font-mono)",
+                      fontWeight: 700,
+                      fontSize: 18,
+                      color: "var(--accent)",
+                      letterSpacing: "0.04em",
                     }}
                   >
-                    <Sparkles style={{ width: 12, height: 12 }} />
-                  </span>
-                </div>
-
-                <h3 style={{ fontSize: "1.35rem", fontWeight: 700, color: "var(--ink)", margin: "0 0 4px" }}>
-                  Distinguished Speaker
-                </h3>
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontFamily: "var(--font-mono)",
-                    color: "var(--accent)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    fontWeight: 600,
-                    marginBottom: 10,
-                  }}
-                >
-                  AI Architect &amp; Practitioner
-                </span>
-                <p style={{ fontSize: 13, color: "var(--ink-4)", margin: 0 }}>
-                  Specialist in Agentic AI Systems, LangChain, and Local LLM Deployment.
-                </p>
-              </div>
-
-              {/* Speaker Content & Workshop Deliverables */}
-              <div className="md:col-span-8 space-y-4">
-                <h4 style={{ fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)", margin: "0 0 8px" }}>
-                  Hands-on Mentorship &amp; Industry-Grade Insights
-                </h4>
-                <p style={{ fontSize: 14, color: "var(--ink-2)", lineHeight: 1.65, margin: 0 }}>
-                  The workshop sessions are led by an active industry professional specializing in autonomous LLM workflows and distributed AI architectures. Attendees will gain end-to-end exposure from fundamental prompting concepts to deploying production-ready multi-agent swarms.
-                </p>
-
-                {/* Key Tags */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, paddingTop: 6 }}>
-                  {[
-                    "Agentic AI Architecture",
-                    "LangChain & LlamaIndex",
-                    "Local LLMs (Ollama)",
-                    "Tool Calling & MCP",
-                    "Vector DBs & Embeddings",
-                    "Live Code Troubleshooting",
-                  ].map((skill, i) => (
-                    <span
-                      key={i}
+                    {p.initials}
+                  </div>
+                  <div>
+                    <h3
                       style={{
-                        fontSize: 11.5,
-                        fontFamily: "var(--font-mono)",
-                        padding: "5px 12px",
-                        borderRadius: 9999,
-                        background: "var(--surface-2)",
-                        border: "1px solid var(--line)",
-                        color: "var(--ink-2)",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
+                        fontSize: "1.15rem",
+                        fontWeight: 700,
+                        color: "var(--ink)",
+                        margin: "0 0 4px",
+                        lineHeight: 1.3,
                       }}
                     >
-                      <CheckCircle2 style={{ width: 12, height: 12, color: "var(--accent)" }} />
-                      <span>{skill}</span>
-                    </span>
-                  ))}
+                      {p.name}
+                    </h3>
+                    <p style={{ fontSize: 13, color: "var(--ink-3)", margin: 0, lineHeight: 1.5 }}>
+                      {p.role}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Takeaway Box */}
                 <div
                   style={{
-                    marginTop: 16,
-                    padding: "14px 18px",
-                    borderRadius: 12,
-                    background: "rgba(22, 163, 107, 0.08)",
-                    border: "1px solid rgba(22, 163, 107, 0.22)",
-                    display: "flex",
+                    display: "inline-flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 12,
+                    alignSelf: "flex-start",
+                    gap: 7,
+                    fontSize: 11.5,
+                    fontFamily: "var(--font-mono)",
+                    padding: "5px 12px",
+                    borderRadius: 9999,
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--line)",
+                    color: "var(--ink-2)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    fontWeight: 600,
+                    position: "relative",
+                    zIndex: 2,
                   }}
                 >
-                  <div style={{ fontSize: 13, color: "var(--ink-2)" }}>
-                    <strong>Interactive Q&amp;A Session:</strong> Dedicated time for project architecture reviews and career guidance in AI engineering.
-                  </div>
-                  <a
-                    href="#registration"
-                    className="btn btn-primary"
-                    style={{ fontSize: 12.5, padding: "8px 18px", borderRadius: 9999 }}
-                  >
-                    <span>Reserve Your Seat</span>
-                    <ArrowRight style={{ width: 13, height: 13 }} />
-                  </a>
+                  <p.Icon style={{ width: 13, height: 13, color: "var(--accent)" }} />
+                  {p.org}
                 </div>
+
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: "var(--ink-2)",
+                    lineHeight: 1.65,
+                    margin: 0,
+                    position: "relative",
+                    zIndex: 2,
+                  }}
+                >
+                  {p.bio}
+                </p>
               </div>
-            </div>
+            ))}
           </div>
         </section>
 
@@ -771,7 +737,7 @@ export default function HomePage() {
                   <li><a href="#home">Home</a></li>
                   <li><a href="#overview">Overview</a></li>
                   <li><a href="#mission-vision">Mission &amp; Vision</a></li>
-                  <li><a href="#speaker">Resource Person</a></li>
+                  <li><a href="#speaker">Resource Persons</a></li>
                   <li><a href="#registration">Registration</a></li>
                 </ul>
               </div>

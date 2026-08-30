@@ -615,10 +615,10 @@ function SuccessContent() {
             <div className="footer-brand-col">
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
-                  <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                  <Image src="/college-logo.png" alt="Sacred Heart College logo" width={32} height={32} style={{ objectFit: "contain" }} />
                 </div>
                 <div className="logo-img-wrap" style={{ width: 32, height: 32 }}>
-                  <Image src="/department-logo.png" alt="Department of Computer Applications (BCA) logo" width={32} height={32} style={{ objectFit: "cover" }} />
+                  <Image src="/department-logo.png" alt="Department of Computer Applications (BCA) logo" width={32} height={32} style={{ objectFit: "contain" }} />
                 </div>
               </div>
               <span
