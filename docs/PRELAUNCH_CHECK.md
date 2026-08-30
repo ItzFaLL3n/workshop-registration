@@ -8,6 +8,23 @@ DB / concurrency review for the check-in desk.
 
 ---
 
+## Status — updated 2026-08-30
+
+All code from this pass is **committed + pushed** (`feat/cloudflare-migration-attendance`,
+HEAD `28bec43`) and both builds are clean.
+
+| Area | State |
+|---|---|
+| Frontend (homepage, Resource Persons, `/install` link, theme, nav, footer, link sweep) | **verified — OK** |
+| Backend (health, webhook 404, payments-POST guard, concurrent delete, walk-in dup, Mark/Undo Paid) | **verified — OK** |
+| **`/admin` page — manual UI walk-through** | **NOT YET DONE — planned for 2026-08-31** |
+
+Nothing outstanding blocks the code. The one remaining task is the hands-on
+`/admin` check (item 3 + 8–10 below), which the owner will do on 2026-08-31
+before opening registration.
+
+---
+
 ## 1. Plan
 
 | # | Area | Action |
@@ -104,42 +121,45 @@ Other DB notes (no change needed at this scale):
 
 ---
 
-## 3. What YOU need to check (after the Cloudflare Pages build goes green)
+## 3. Verification checklist (after the Cloudflare Pages build goes green)
 
 ### Frontend
-1. **Homepage → Resource Persons**: both photos load and aren't stretched;
-   Prabhakaran's **View LinkedIn** opens the correct profile in a new tab.
-2. **`/install`**: scroll to the bottom of the commands section → **Workshop
-   Resources** button goes to `/resources`; **Back to Registration** goes to the
-   homepage form.
-3. **`/admin`** on a **laptop and a phone**: the registration list shows as
-   cards, **no horizontal scrollbar** at any width; every action
-   (Present/Absent, Mark Paid, Undo Paid, status dropdown, Edit, Delete) is
-   reachable without scrolling sideways.
-4. **Theme toggle** on `/admin` and the homepage form → snaps cleanly, header
-   goes light, no flicker on reload.
-5. Nav from `/live`: **Overview** and **Registration** links land you on the
-   homepage sections.
-6. Footer links on `/`, `/success`, `/resources` → Terms / Privacy / Refund all
-   open; `#speaker` → Resource Persons.
+- [x] **Homepage → Resource Persons**: both photos load and aren't stretched;
+  Prabhakaran's **View LinkedIn** opens the correct profile in a new tab.
+- [x] **`/install`**: bottom of the commands section → **Workshop Resources**
+  button goes to `/resources`; **Back to Registration** goes to the homepage form.
+- [ ] **`/admin`** on a **laptop and a phone**: the registration list shows as
+  cards, **no horizontal scrollbar** at any width; every action (Present/Absent,
+  Mark Paid, Undo Paid, status dropdown, Edit, Delete) is reachable without
+  scrolling sideways.  ← **pending, 2026-08-31**
+- [x] **Theme toggle** on the homepage form → snaps cleanly, no flicker on reload.
+  *(Also re-check on `/admin` during the 2026-08-31 pass.)*
+- [x] Nav from `/live`: **Overview** and **Registration** links land you on the
+  homepage sections.
+- [x] Footer links on `/`, `/success`, `/resources` → Terms / Privacy / Refund all
+  open; `#speaker` → Resource Persons.
 
 ### Backend (after `git pull && docker compose up -d --build` on the VM)
-7. `curl -s https://api.shcbca.online/health` → `{"ok":true,"db":true}`.
-8. **Concurrent delete**: open `/admin` in two browser windows (admin password),
-   load the dashboard in both, click **Delete** on the *same* row in both within
-   a second. Expected: one deletes, the other just refreshes to the updated list
-   — **no red error, no 500**.
-9. **Mark Paid / Undo Paid** round-trips a cash row and the count cards update.
-10. **Walk-in** with an email that already has a row → 409 "already registered"
-    (not a duplicate row).
-11. `curl -i https://api.shcbca.online/webhook/razorpay` → `404` (payments sealed off).
-12. Payments POST guard:
-    `curl -s -X POST https://api.shcbca.online/register -H 'content-type: application/json' -d '{"name":"z z","email":"del@x.com","phone":"9000000000","college":"c","department":"d","year":"1st Year","gender":"Male","foodPreference":"Vegetarian","paymentMethod":"RAZORPAY"}'`
-    → response has `"paymentMethod":"CASH"`, no `razorpayOrderId`. Delete that row after.
+- [x] `curl -s https://api.shcbca.online/health` → `{"ok":true,"db":true}`.
+- [ ] **Concurrent delete**: open `/admin` in two browser windows (admin
+  password), load the dashboard in both, click **Delete** on the *same* row in
+  both within a second. Expected: one deletes, the other just refreshes — **no
+  red error, no 500**.  ← **pending, 2026-08-31 (part of the /admin pass)**
+- [ ] **Mark Paid / Undo Paid** round-trips a cash row and the count cards
+  update.  ← **pending, 2026-08-31**
+- [ ] **Walk-in** with an email that already has a row → 409 "already
+  registered" (not a duplicate row).  ← **pending, 2026-08-31**
+- [x] `curl -i https://api.shcbca.online/webhook/razorpay` → `404` (payments
+  sealed off).
+- [x] Payments POST guard:
+  `curl -s -X POST https://api.shcbca.online/register -H 'content-type: application/json' -d '{"name":"z z","email":"del@x.com","phone":"9000000000","college":"c","department":"d","year":"1st Year","gender":"Male","foodPreference":"Vegetarian","paymentMethod":"RAZORPAY"}'`
+  → response has `"paymentMethod":"CASH"`, no `razorpayOrderId`. (Delete that row after.)
 
 ### Still on you before opening registration (unchanged from HANDOFF.md)
-- `ADMIN_PASSWORD` / `REGISTRATION_TEAM_PASSWORD` are long & random on the VM.
-- `/resources` "materials": real slide-deck / repo / cheat-sheet URLs + `ready: true`.
-- `TRUNCATE "Registration";` to clear all test rows.
-- `NEXT_PUBLIC_YOUTUBE_VIDEO_ID` in Cloudflare Pages env on event day for `/live`.
-- Cloudflare Pages → Build watch paths = `frontend/*`.
+- [ ] `ADMIN_PASSWORD` / `REGISTRATION_TEAM_PASSWORD` are long & random on the VM.
+- [ ] `/resources` "materials": real slide-deck / repo / cheat-sheet URLs +
+  `ready: true` (`app/resources/page.tsx`, `const materials`).
+- [ ] Clear all test rows:
+  `docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "TRUNCATE \"Registration\";"'`
+- [ ] `NEXT_PUBLIC_YOUTUBE_VIDEO_ID` in Cloudflare Pages env on event day for `/live`.
+- [ ] Cloudflare Pages → Build watch paths = `frontend/*`.
