@@ -94,9 +94,11 @@ webhookRouter.post("/", async (req, res) => {
             where: { id: existing.id },
           });
           if (registration) {
-            await sendConfirmationEmail(registration.email, registration.name).catch((e) =>
-              console.error("Email send failed:", e)
-            );
+            await sendConfirmationEmail(
+              registration.email,
+              registration.name,
+              registration.razorpayOrderId ?? registration.id
+            ).catch((e) => console.error("Email send failed:", e));
           }
         }
       }

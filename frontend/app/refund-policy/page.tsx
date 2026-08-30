@@ -35,41 +35,40 @@ export default function RefundPolicyPage() {
       <div>
         <H2>1. Cancellations by You</H2>
         <P>
-          If you wish to cancel your registration, contact us at itzselvan74@gmail.com at least
-          2 days before the workshop date. Requests made after this window are not eligible for
-          a refund. Once approved, refunds are processed to the original payment method within
-          7 business days.
+          The ₹150 fee is only collected in cash at the registration desk on event day, so
+          cancelling a seat reservation beforehand costs you nothing — just email
+          itzselvan74@gmail.com so we can free up your place. If you have already paid in cash at
+          the desk and need to withdraw before the workshop begins, ask a registration-desk
+          organizer on the day for a full cash refund of your ₹150.
         </P>
       </div>
 
       <div>
         <H2>2. If the Workshop Is Cancelled or Rescheduled by Us</H2>
         <P>
-          If the organizers cancel or indefinitely postpone the workshop, all registered
-          participants will receive a full refund, processed within 7 business days of the
-          cancellation being announced. If the workshop is rescheduled to a new date, your
-          registration carries over automatically unless you request a refund within 7 days of
-          the new date being announced.
+          If the organizers cancel or indefinitely postpone the workshop, any registration fee
+          already paid will be refunded in full. If the workshop is rescheduled to a new date,
+          your registration carries over automatically; you may withdraw it at any time before
+          the new date at no cost.
         </P>
       </div>
 
       <div>
-        <H2>3. Failed or Duplicate Payments</H2>
+        <H2>3. Overpayment at the Desk</H2>
         <P>
-          If a payment is deducted but your registration does not show as confirmed, or if you are
-          charged more than once, contact itzselvan74@gmail.com with your payment reference — this
-          will be verified and any erroneous charge refunded in full within 7 business days. (Note:
-          a payment that fails on Razorpay&apos;s side without a registration being created is
-          auto-reversed by Razorpay directly — no separate action is needed for that case.)
+          Payment is made in person at the registration desk, so online payment failures do not
+          apply. If you believe you were given incorrect change or asked to pay more than the
+          ₹150 fee, raise it with a registration-desk organizer immediately, or email
+          itzselvan74@gmail.com with your name and Reference ID and it will be corrected.
         </P>
       </div>
 
       <div>
         <H2>4. How Refunds Are Issued</H2>
         <P>
-          Approved refunds are credited back to the original payment method used at checkout
-          (UPI, card, or netbanking) via Razorpay. Processing time after approval is typically
-          up to 7 business days, depending on your bank.
+          Where a fee has been collected, refunds are issued in cash at the registration desk on
+          event day. If a refund is due because the workshop was cancelled, the organizers will
+          arrange it directly with you by email.
         </P>
       </div>
 

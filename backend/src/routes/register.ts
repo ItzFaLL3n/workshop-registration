@@ -1,7 +1,6 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { prisma } from "../lib/prisma.js";
-import { createRazorpayOrder } from "../lib/razorpay.js";
 import { validateRegistrationInput } from "../lib/validation.js";
 import { sendCashReservationEmail } from "../lib/email.js";
 import { env } from "../lib/env.js";
@@ -65,17 +64,20 @@ registerRouter.post("/register", registerLimiter, async (req, res) => {
     const { name, email, phone, college, department, year, gender, foodPreference } =
       validated.data;
 
-    const paymentMethod = req.body.paymentMethod === "CASH" ? "CASH" : "RAZORPAY";
+    // Online payment is disabled — Razorpay Live onboarding was declined for an
+    // individual running event registration (see HANDOFF.md 2026-08-30). Every
+    // registration is a cash reservation collected at the desk on event day.
+    // Hard-coded server-side (not from req.body) so a crafted request can't
+    // re-open a Razorpay/test-mode order path.
+    const paymentMethod = "CASH" as const;
 
     // ── Duplicate guard ──
     // Serialize concurrent /register calls for the SAME email with a Postgres
     // advisory lock, so a double-click or two devices can't both pass the
-    // "no existing row" check and each create a row. Only the find-or-create
-    // is in here — the Razorpay API call stays outside the transaction.
+    // "no existing row" check and each create a row.
     //
-    // Re-uses a pending row (user hit back after a failed payment, or is
-    // switching between "pay online" and "pay cash" before completing either)
-    // instead of creating a new one; only paymentMethod is updated on reuse.
+    // Re-uses a pending row (user submitted twice, hit back, etc.) instead of
+    // creating a new one.
     const outcome = await prisma.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${email}))`;
 
@@ -124,40 +126,16 @@ registerRouter.post("/register", registerLimiter, async (req, res) => {
 
     const registration = outcome.row;
 
-    // ── Pay cash at event: reserve the seat, no Razorpay order at all ──
-    if (paymentMethod === "CASH") {
-      await sendCashReservationEmail(email, name, WORKSHOP_FEE_RUPEES).catch((e) =>
-        console.error("Cash reservation email failed:", e)
-      );
-      return res.json({ registrationId: registration.id, paymentMethod: "CASH" });
-    }
-
-    // ── Pay online: create Razorpay order ──
-    // Note: unlike Cashfree, Razorpay orders don't take a return/notify URL —
-    // the webhook endpoint is configured once in the Razorpay dashboard, not
-    // per order, so there's no BACKEND_URL/scheme footgun here.
-    const order = await createRazorpayOrder({
-      receipt: `wr_${registration.id}`,
-      amountRupees: WORKSHOP_FEE_RUPEES,
-      notes: { registrationId: registration.id, email, name },
-    });
-
-    await prisma.registration.update({
-      where: { id: registration.id },
-      data: { razorpayOrderId: order.id },
-    });
-
-    res.json({
-      registrationId: registration.id,
-      paymentMethod: "RAZORPAY",
-      razorpayOrderId: order.id,
-      razorpayKeyId: env.RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: order.currency,
-      name,
+    // Reserve the seat — no payment gateway involved. Cash is collected at the
+    // registration desk on event day and confirmed there via the admin dashboard.
+    await sendCashReservationEmail(
       email,
-      phone,
-    });
+      name,
+      WORKSHOP_FEE_RUPEES,
+      `wr_${registration.id}`
+    ).catch((e) => console.error("Cash reservation email failed:", e));
+
+    return res.json({ registrationId: registration.id, paymentMethod: "CASH" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });

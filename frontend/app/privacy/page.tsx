@@ -44,21 +44,21 @@ export default function PrivacyPage() {
       <div>
         <H2>2. How We Use Your Information</H2>
         <P>
-          We use this information to process your registration and payment, confirm your seat by
-          email, plan logistics (e.g. catering based on food preference), and contact you with
-          essential updates about the workshop. We do not use your information for marketing
-          unrelated to this event, and we do not sell your data.
+          We use this information to process your registration, confirm your seat by email, plan
+          logistics (e.g. catering based on food preference), and contact you with essential
+          updates about the workshop. We do not use your information for marketing unrelated to
+          this event, and we do not sell your data.
         </P>
       </div>
 
       <div>
         <H2>3. Third Parties We Share Data With</H2>
         <P>
-          Payment processing is handled by <strong>Razorpay</strong>, which receives the
-          details necessary to process your transaction (name, email, phone, and payment amount).
-          Confirmation emails are sent via <strong>Resend</strong>. Neither party uses your data
-          for any purpose beyond providing their service to us. We do not share your information
-          with any other third party.
+          Confirmation emails are sent via <strong>Resend</strong>, which receives your name and
+          email address for that purpose only. The ₹150 fee is collected in cash at the event, so
+          no payment processor receives your data. Neither party uses your data for any purpose
+          beyond providing their service to us, and we do not share your information with any
+          other third party.
         </P>
       </div>
 

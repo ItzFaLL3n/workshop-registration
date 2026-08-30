@@ -667,7 +667,7 @@ export default function HomePage() {
                 <li><strong>Venue:</strong> Kamarajar Arangam, Sacred Heart College (Autonomous).</li>
                 <li>Use your official full name as per your college identity card.</li>
                 <li>One registration per participant email address.</li>
-                <li>Instant payment confirmation via Razorpay with receipt.</li>
+                <li>Pay the ₹150 fee in cash at the registration desk on event day.</li>
                 <li>Certificates will be issued by Department of Computer Applications (BCA).</li>
               </ul>
 
@@ -716,7 +716,7 @@ export default function HomePage() {
               { num: "01", title: "Reporting Time",    desc: "Report to Kamarajar Arangam 15 minutes before the 09:30 AM session for ID verification." },
               { num: "02", title: "Hardware",          desc: "Carry your laptop (Windows / macOS / Linux) with charger for hands-on lab exercises." },
               { num: "03", title: "Prerequisites",     desc: "Basic familiarity with any programming language is helpful. No prior AI experience is required." },
-              { num: "04", title: "Student ID Card",   desc: "Carry your valid college identity card and Order ID for verification at check-in." },
+              { num: "04", title: "Student ID Card",   desc: "Carry your valid college identity card and the Reference ID from your confirmation email for check-in." },
               { num: "05", title: "Lunch & Refreshments", desc: "Lunch and session refreshments will be provided for all registered attendees." },
               { num: "06", title: "Certificate",       desc: "Issued by Sacred Heart College Dept. of Computer Applications (BCA) upon full attendance." },
             ].map((g, i) => (

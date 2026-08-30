@@ -235,6 +235,41 @@ adminRouter.patch(
 );
 
 // ──────────────────────────────────────────────
+//  PATCH /admin/registrations/:id/unmark-cash-paid
+//  Reverse a mistaken "Mark Paid" at the desk — flips a CASH row back
+//  PAID → PENDING. Both roles (same as mark-cash-paid): a wrong click at
+//  the check-in desk shouldn't need the admin to undo it. Still CASH-only
+//  and PAID-only — it can't set FAILED/EXPIRED (that's the admin-only
+//  status endpoint) and never touches a RAZORPAY row.
+// ──────────────────────────────────────────────
+adminRouter.patch(
+  "/admin/registrations/:id/unmark-cash-paid",
+  adminLoginLimiter,
+  requireStaffAuth,
+  asyncHandler(async (req, res) => {
+    const registration = await prisma.registration.findUnique({ where: { id: req.params.id } });
+    if (!registration) {
+      return res.status(404).json({ error: "Registration not found." });
+    }
+    if (registration.paymentMethod !== "CASH") {
+      return res.status(400).json({
+        error: "Only cash registrations can be changed here — Razorpay payments are webhook-driven.",
+      });
+    }
+    if (registration.status !== "PAID") {
+      return res.json({ registration }); // nothing to undo, idempotent
+    }
+
+    const updated = await prisma.registration.update({
+      where: { id: registration.id },
+      data: { status: "PENDING" },
+    });
+
+    res.json({ registration: updated });
+  })
+);
+
+// ──────────────────────────────────────────────
 //  POST /admin/registrations/walk-in
 //  Registration desk adds someone who never registered online. Cash is
 //  collected on the spot, so this is created already PAID — there's
@@ -292,7 +327,7 @@ adminRouter.post(
 
     const { registration } = result;
 
-    await sendConfirmationEmail(email, name).catch((e) =>
+    await sendConfirmationEmail(email, name, `wr_${registration.id}`).catch((e) =>
       console.error("Walk-in confirmation email failed:", e)
     );
 

@@ -1,11 +1,11 @@
 // Validates required environment variables once at startup so misconfiguration
 // fails loudly and immediately, instead of surfacing later as a cryptic
 // Razorpay/DB/email error mid-request.
+// RAZORPAY_* are NOT required — online payment is disabled and registration is
+// cash-only (see HANDOFF.md 2026-08-30). They can be removed from `.env`
+// entirely; leave them only if you're actively re-enabling online payment.
 const REQUIRED_VARS = [
   "DATABASE_URL",
-  "RAZORPAY_KEY_ID",
-  "RAZORPAY_KEY_SECRET",
-  "RAZORPAY_WEBHOOK_SECRET",
   "FRONTEND_URL",
   "ADMIN_PASSWORD",
   "REGISTRATION_TEAM_PASSWORD",
@@ -23,9 +23,10 @@ function loadEnv() {
 
   return {
     DATABASE_URL: process.env.DATABASE_URL!,
-    RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID!,
-    RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET!,
-    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET!,
+    // Optional — only used if online payment is re-enabled (webhook re-mounted).
+    RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID ?? "",
+    RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET ?? "",
+    RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET ?? "",
     FRONTEND_URL: process.env.FRONTEND_URL!,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD!,
     REGISTRATION_TEAM_PASSWORD: process.env.REGISTRATION_TEAM_PASSWORD!,

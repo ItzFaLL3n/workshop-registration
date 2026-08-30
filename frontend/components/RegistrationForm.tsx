@@ -3,23 +3,12 @@
 import { useState, useRef } from "react";
 import { registerForWorkshop } from "@/lib/api";
 
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
-function loadRazorpayScript(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-}
-
+// Online payment is disabled — every registration is a cash reservation
+// collected at the registration desk on event day (Razorpay Live onboarding
+// was declined for an individual running event registration). To re-enable
+// online payment, restore the payment-method radio below, the Razorpay
+// checkout script loader, and the RAZORPAY branch in handleSubmit — see git
+// history for this file, plus HANDOFF.md 2026-08-30.
 interface FormState {
   name: string;
   email: string;
@@ -29,7 +18,7 @@ interface FormState {
   year: string;
   gender: string;
   foodPreference: string;
-  paymentMethod: "RAZORPAY" | "CASH";
+  paymentMethod: "CASH";
 }
 
 interface FieldErrors {
@@ -65,7 +54,7 @@ export default function RegistrationForm() {
     year: "",
     gender: "",
     foodPreference: "",
-    paymentMethod: "RAZORPAY",
+    paymentMethod: "CASH",
   });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
@@ -119,53 +108,9 @@ export default function RegistrationForm() {
         paymentMethod: form.paymentMethod,
       });
 
-      if (result.paymentMethod === "CASH") {
-        // No payment gateway involved — the seat is reserved, cash is
-        // collected at the check-in desk on event day.
-        window.location.href = `/success?method=cash&order_id=wr_${result.registrationId}`;
-        return;
-      }
-
-      const { razorpayOrderId, razorpayKeyId, amount, currency, name, email, phone } = result;
-
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        throw new Error("Could not load the payment gateway. Check your connection and try again.");
-      }
-
-      const razorpay = new window.Razorpay({
-        key: razorpayKeyId,
-        amount,
-        currency,
-        order_id: razorpayOrderId,
-        name: "VORTEX NEOVIA '27",
-        description: "LLM Agents Workshop Registration",
-        prefill: { name, email, contact: phone },
-        theme: { color: "#1a8a54" },
-        handler: () => {
-          // Webhook is the source of truth for flipping status to PAID —
-          // this redirect is just immediate UX, mirroring what Cashfree's
-          // return_url used to do.
-          window.location.href = `/success?order_id=${razorpayOrderId}`;
-        },
-        modal: {
-          ondismiss: () => {
-            setApiError(
-              "Payment window closed before it completed. Your seat is held as pending — press “Register & Pay” to try again."
-            );
-            setLoading(false);
-          },
-        },
-      });
-
-      razorpay.on("payment.failed", () => {
-        setApiError(
-          "The payment didn’t go through. Your seat is held as pending — press “Register & Pay” to try again, or pick “Pay Cash at Event” instead."
-        );
-        setLoading(false);
-      });
-
-      razorpay.open();
+      // No payment gateway involved — the seat is reserved and cash is
+      // collected at the check-in desk on event day.
+      window.location.href = `/success?method=cash&order_id=wr_${result.registrationId}`;
     } catch (err: any) {
       setApiError(err.message || "Something went wrong. Please try again.");
       setLoading(false);
@@ -372,39 +317,32 @@ export default function RegistrationForm() {
         </span>
       </div>
 
-      {/* Payment Method */}
-      <div className="form-row radio-row">
-        <fieldset className="radio-fieldset">
-          <legend>Payment</legend>
-          <div className="radio-group">
-            <label className="radio-pill">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="RAZORPAY"
-                checked={form.paymentMethod === "RAZORPAY"}
-                onChange={() => setForm((prev) => ({ ...prev, paymentMethod: "RAZORPAY" }))}
-              />
-              <span>Pay Online Now</span>
-            </label>
-            <label className="radio-pill">
-              <input
-                type="radio"
-                name="paymentMethod"
-                value="CASH"
-                checked={form.paymentMethod === "CASH"}
-                onChange={() => setForm((prev) => ({ ...prev, paymentMethod: "CASH" }))}
-              />
-              <span>Pay Cash at Event</span>
-            </label>
-          </div>
-        </fieldset>
-        {form.paymentMethod === "CASH" && (
-          <p style={{ display: "block", margin: "6px 0 0", fontSize: 12.5, color: "var(--ink-3)" }}>
-            Your seat is reserved now — bring ₹150 cash and a valid student/college ID to the
-            registration desk on event day.
+      {/* Payment — cash collected at the registration desk on event day */}
+      <div className="form-row">
+        <div
+          style={{
+            padding: "14px 16px",
+            borderRadius: "var(--r-md, 12px)",
+            background: "var(--surface-2)",
+            border: "1px solid var(--line)",
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 600, color: "var(--ink)" }}>
+            Pay ₹150 cash at the registration desk
           </p>
-        )}
+          <p
+            style={{
+              margin: "6px 0 0",
+              fontSize: 12.5,
+              color: "var(--ink-3)",
+              lineHeight: 1.5,
+            }}
+          >
+            Submitting this form reserves your seat. Bring <strong>₹150 in cash</strong> and a
+            valid student/college ID to the registration desk on event day to complete your
+            registration.
+          </p>
+        </div>
       </div>
 
       {/* API Error */}
@@ -425,11 +363,11 @@ export default function RegistrationForm() {
         {loading ? (
           <>
             <i className="fa-solid fa-spinner fa-spin" />
-            <span>{form.paymentMethod === "CASH" ? "Reserving your seat…" : "Opening payment…"}</span>
+            <span>Reserving your seat…</span>
           </>
         ) : (
           <>
-            <span>{form.paymentMethod === "CASH" ? "Reserve My Seat" : "Register & Pay"}</span>
+            <span>Reserve My Seat</span>
             <i className="fa-solid fa-arrow-right" />
           </>
         )}

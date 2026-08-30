@@ -11,7 +11,7 @@
 
 ---
 
-## 2026-08-30 — real domain live, going fully live tomorrow
+## 2026-08-30 — Razorpay Live REJECTED → going cash-only for launch
 
 ### Current state
 
@@ -19,65 +19,87 @@
 |---|---|---|
 | Domain | `shcbca.online` — bought on **GoDaddy**, nameservers → **Cloudflare** (free plan) | live |
 | Frontend | **Cloudflare Pages**, static export, `https://shcbca.online` (+ `www` → apex redirect rule) | live, building from branch `feat/cloudflare-migration-attendance` |
-| API + Postgres + Caddy | **Azure VM**, `https://api.shcbca.online` | live, **Razorpay TEST mode** |
+| API + Postgres + Caddy | **Azure VM**, `https://api.shcbca.online` | live, deployed at commit `04e5fdb` |
 | `api` DNS record | Cloudflare `A` record, **DNS only / grey cloud** — Cloudflare is NOT in front of the API, so Caddy does its own Let's Encrypt; **no Origin Cert, no WAF rule** | — |
-| Email | Resend, key is the **placeholder `re_placeholder_until_setup`** — **emails do not send yet** | pending |
+| Email | **Resend — domain `shcbca.online` verified**, real API key + `EMAIL_FROM=…@shcbca.online` in `backend/.env`. Confirmation + cash-reservation emails confirmed sending. | working |
+| Payments | **NONE — cash only, collected at the registration desk on event day.** Razorpay Live onboarding was declined. | see below |
 
 - **Event: Sunday, 7 September 2026, 09:30 AM – 04:30 PM IST.** Single day. Venue: Kamarajar Arangam.
 - **Online registration closes 5 September 2026** — notice only, the form stays open (no auto-disable).
-- Homepage hero shows a **live countdown** to the event (replaces the old workflow diagram). No registration counter anywhere on the public site.
-- The Razorpay key id is returned per-request by `POST /register`, **not** baked into the frontend build — so switching to Live keys needs **no frontend deploy**.
+- Homepage hero shows a **live countdown** to the event. No registration counter anywhere on the public site.
 
-### Pending backend commit (pushed 2026-08-30, VM NOT redeployed for it yet)
+### Razorpay Live rejection (2026-08-30)
 
-Needs `git pull && docker compose up -d --build` on the VM:
+Razorpay support declined the Live activation request:
 
-- Rate limits: `POST /register` **10 → 120 / 15 min / IP** (campus NAT, carrier CGNAT, phone hotspots put many real users on one IP); `adminLoginLimiter` **20 → 50** + `skipSuccessfulRequests` (only failed logins count, so bulk check-in / deletes can't trip it).
-- Webhook: recovers the registration via the order's `notes.registrationId` / `receipt` when a payment lands on a stale order id (user pressed "Register & Pay" twice) — closes a money-in / never-marked-PAID gap. Atomic `updateMany` PAID transition → exactly-once confirmation email even on simultaneous duplicate delivery. `AbortSignal.timeout(15000)` on all Razorpay API calls.
-- `POST /register` + walk-in: find-or-create wrapped in a `$transaction` with a `pg_advisory_xact_lock(hashtext(email))` → concurrent double-submit for one email can't create two rows.
-- Input validation trims all fields; `MAX_FIELD_LENGTH` now also caps year/gender/food.
-- CSV export rewritten: **all** rows (was PAID-only), adds Payment Status + Attendance (Present/Absent) + Amount columns, readable IST datetime, UTF-8 BOM, formula-injection guard.
+> "…we are unable to proceed with your request, as **Un-registered businesses operating in Event Registration** falls outside the categories we currently support."
 
-### To finish tomorrow
+Cashfree / PhonePe PG / Paytm PG apply the same KYC bar — an individual collecting money for "event registration" will be rejected the same way. **Decision: launch cash-only.** The "Pay Cash at Event" path was already built and tested end-to-end, so no gateway, webhook, or reconciliation is needed.
 
-**A. Cloudflare Pages — stop backend commits burning builds**
-- Settings → Builds & deployments → **Build watch paths → Include: `frontend/*`**. After this, backend-only pushes don't trigger a Pages build.
+**Optional later (does NOT block launch):** reapply to Razorpay **under Sacred Heart College's registered name** (registered educational institution — has PAN, bank account, society/trust registration) and under the **"Educational Services" category (MCC 8299)**, not event/ticketing. Needs someone in the college office with the documents + bank account; KYC is 2–4 working days. If it clears before 5 Sept, re-enable online payment (see "Re-enabling online payment" below).
 
-**B. Razorpay → Live Mode** (edit `backend/.env` on the VM, then rebuild)
-1. Confirm the account is **activated for Live Mode** (KYC approved) — dashboard → Account status.
-2. Live Mode → Settings → API Keys → generate → `RAZORPAY_KEY_ID=rzp_live_…`, `RAZORPAY_KEY_SECRET=…`
-3. Live Mode → Settings → Configuration → **Auto-capture payments ON** (else `payment.captured` never fires).
-4. Live Mode → Settings → **Bank Accounts & Settlements** → a bank account is linked.
-5. Live Mode → Settings → **Webhooks** (separate from Test) → add `https://api.shcbca.online/webhook/razorpay`, events `payment.captured` + `payment.failed`, new secret → `RAZORPAY_WEBHOOK_SECRET=…` (different from the test one).
+### Done on 2026-08-30
 
-**C. Resend → real email** (edit `backend/.env`, then rebuild)
-1. Resend → Domains → add `shcbca.online` → put its DKIM/SPF records in **Cloudflare DNS as DNS-only (grey)** → Verify.
-2. Resend → API Keys → create ("Sending access") → `RESEND_API_KEY=re_…` (replace the placeholder).
-3. `EMAIL_FROM=VORTEX NEOVIA <noreply@shcbca.online>` (must be at the verified domain). Fallback if not verified in time: `EMAIL_FROM=VORTEX NEOVIA <onboarding@resend.dev>` with the real key.
+- Deployed backend commit `04e5fdb` to the VM (`git pull && docker compose up -d --build`, health OK). Contents: `POST /register` rate limit 10 → 120 / 15 min / IP; `adminLoginLimiter` 20 → 50 + `skipSuccessfulRequests`; `pg_advisory_xact_lock(hashtext(email))` around find-or-create in `/register` + walk-in; webhook stale-order recovery; atomic `updateMany` PAID transition (exactly-once email); `AbortSignal.timeout(15000)` on Razorpay calls; input trim + length caps; CSV export rewrite (all rows, Payment Status + Attendance + Amount cols, IST datetime, BOM, formula-injection guard).
+- **Resend live**: domain verified, real key + `EMAIL_FROM` in `.env`, rebuilt; emails arrive.
+- **Switched the site to cash-only** (frontend, uncommitted — see below).
 
-**D. Deploy the VM**
-```bash
-ssh <user>@<VM_IP>
-cd ~/workshop-registration
-git pull
-docker compose up -d --build
-curl -s https://api.shcbca.online/health          # {"ok":true,"db":true}
-```
+### Uncommitted — push to go live (one commit → `git pull && docker compose up -d --build` on the VM; frontend files also trigger a Pages build)
 
-**E. Final sweep before opening registration**
+**Payments — cash-only, locked down server-side:**
+- `backend/src/routes/register.ts` — `POST /register` **ignores any `paymentMethod` from the request body** and always creates a `CASH` reservation. The Razorpay order-creation block + the `razorpayKeyId` in the response are removed, so a crafted request can't re-open a Razorpay / test-mode order path.
+- `backend/src/index.ts` — the `POST /webhook/razorpay` route is **no longer mounted** (import + `app.use` removed). Hitting it now returns a plain 404. `routes/webhook.ts` is left in the tree (unused) for the revert path.
+- `backend/src/lib/env.ts` — `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` / `RAZORPAY_WEBHOOK_SECRET` moved out of `REQUIRED_VARS` (now default to `""`). **You can delete all three from `backend/.env` on the VM** — the backend boots without them. Do that so no test-mode keys sit in the environment.
+- `frontend/components/RegistrationForm.tsx` — payment radio + `loadRazorpayScript` + the whole Razorpay `handleSubmit` branch deleted; `paymentMethod` type is now just `"CASH"`; static "Pay ₹150 cash at the registration desk" notice; button reads "Reserve My Seat".
+
+**Reference ID in emails / admin (yesterday's change):**
+- `backend/src/lib/email.ts`, `routes/admin.ts` — confirmation + cash-reservation + walk-in emails carry a **Reference ID** = `wr_<registrationId>`.
+- `frontend/app/admin/page.tsx` — search also matches the Reference ID (strips a leading `wr_`).
+
+**Check-in desk can undo a mistaken "Mark Paid":**
+- `backend/src/routes/admin.ts` — new `PATCH /admin/registrations/:id/unmark-cash-paid` (both roles, CASH + PAID only → back to PENDING; refuses RAZORPAY rows; can't set FAILED/EXPIRED).
+- `frontend/app/admin/page.tsx` — an **"Undo Paid"** button shows on CASH + PAID rows next to "Mark Paid".
+
+**Copy:**
+- `app/page.tsx` — "Instant payment confirmation via Razorpay" → cash wording; guideline 04 → bring the Reference ID.
+- `app/terms`, `app/privacy`, `app/refund-policy` — payment sections rewritten for cash-at-desk (no gateway, no card/UPI data, cash refunds at the desk).
+
+Both build clean (backend `tsc`, frontend `next build` → 13 static routes) as of 2026-08-30.
+
+### To finish — launch (cash-only)
+
+**A. Push the branch** — `git add -A && git commit && git push` (one commit). Frontend files trigger a Cloudflare Pages build; backend needs `git pull && docker compose up -d --build` on the VM.
+
+**B. Cloudflare Pages** — Settings → Builds & deployments → **Build watch paths → Include `frontend/*`** so backend-only pushes stop triggering Pages builds. *(Whenever — not blocking.)*
+
+**C. Final sweep before opening registration**
 - `ADMIN_PASSWORD` + `REGISTRATION_TEAM_PASSWORD` in `backend/.env` are long random (`openssl rand -hex 24`), not placeholders.
 - `FRONTEND_URL=https://shcbca.online` exact — no trailing slash, no `www`. `WORKSHOP_FEE_RUPEES=150`.
-- **One real ₹150 Live transaction** end-to-end: register → pay → row `PAID` in `/admin` → email arrives → shows in Razorpay Live dashboard → **refund it** from Razorpay.
+- **One end-to-end dry run:** register (cash) on the live site → `/success` shows the cash copy + Reference ID → reservation email arrives with the Reference ID → row shows on `/admin` as `CASH`/`PENDING` → log in with `REGISTRATION_TEAM_PASSWORD`, confirm "Mark Paid" flips it, "Undo Paid" flips it back, and "Add Walk-in" creates a `PAID` row → CSV export button hidden for the team role.
+- **Confirm payments are sealed off:** `curl -s -X POST https://api.shcbca.online/register -H 'content-type: application/json' -d '{"name":"x y","email":"t@t.com","phone":"9000000000","college":"c","department":"d","year":"1st Year","gender":"Male","foodPreference":"Vegetarian","paymentMethod":"RAZORPAY"}'` → response must say `"paymentMethod":"CASH"` (no `razorpayOrderId` / `razorpayKeyId`). `curl -i https://api.shcbca.online/webhook/razorpay` → `404`. Then delete that test row.
 - **Clear test data:** `docker compose exec postgres psql -U workshop -d workshop_registration -c 'TRUNCATE "Registration";'`
-- UptimeRobot HTTPS monitor on `https://api.shcbca.online/health`.
+- UptimeRobot HTTPS monitor on `https://api.shcbca.online/health`, 5-min, email alert.
 - Backup command to keep handy: `docker compose exec postgres pg_dump -U workshop workshop_registration > backup-$(date +%F).sql`
 - `/resources` and `/install` have the real deck / repo / cheat-sheet links.
 - **Event day only:** set `NEXT_PUBLIC_YOUTUBE_VIDEO_ID` in Cloudflare Pages env + Retry deployment → `/live` embeds the stream.
+- **Registration desk on event day:** collect ₹150 cash, find the person in `/admin` by name or Reference ID, hit "Mark Paid". Walk-ins (never registered online) → "Add Walk-in" (creates a row already `PAID`/`CASH`).
+
+### Re-enabling online payment (only if a gateway is later approved under the college's name)
+
+The full loop code (`routes/webhook.ts`, `lib/razorpay.ts`, the order-creation logic) is still in the tree — it's just disconnected. To turn it back on:
+
+1. `backend/src/index.ts` — restore `import { webhookRouter } from "./routes/webhook.js";` and the `app.use("/webhook/razorpay", express.raw({ type: "application/json" }), webhookRouter)` mount (must stay above `express.json()`).
+2. `backend/src/routes/register.ts` — restore the `paymentMethod` from `req.body` and the Razorpay order-creation block + response fields (git history for the pre-2026-08-30 version).
+3. `backend/src/lib/env.ts` — move `RAZORPAY_KEY_ID` / `_SECRET` / `_WEBHOOK_SECRET` back into `REQUIRED_VARS`.
+4. `backend/.env` on the VM: real live `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` from a Live webhook (`payment.captured` + `payment.failed` → `https://api.shcbca.online/webhook/razorpay`), **Auto-capture ON**, bank account linked. `docker compose up -d --build`.
+5. `frontend/components/RegistrationForm.tsx` — restore the payment-method radio, `loadRazorpayScript`, the RAZORPAY branch in `handleSubmit`, and the `"RAZORPAY" | "CASH"` type (git history).
+6. Revert the payment wording in `app/page.tsx` + the three legal pages.
+7. One real ₹150 live transaction end-to-end, then refund it.
 
 ### Capacity (already handled — don't over-engineer)
 
 - The whole public site (`/`, `/live`, `/install`, `/success`, `/resources`) is **static on Cloudflare's edge** — any number of concurrent viewers, zero backend load. The YouTube embed streams from Google.
-- The **only** thing a visitor does that hits the VM is `POST /register`. 50–200 concurrent registrations are fine: the DB transaction is ~3–5 ms, the Razorpay API call is outside it, the 10-connection pool drains in tens of ms. No concurrency change needed — the 120/15min limit is purely so shared-IP users aren't falsely blocked.
+- The **only** thing a visitor does that hits the VM is `POST /register`, now just a ~3–5 ms DB transaction + a reservation email (no gateway call at all). 50–200 concurrent registrations drain the 10-connection pool in tens of ms. No concurrency change needed — the 120/15min limit is purely so shared-IP users aren't falsely blocked.
 
 ---
 

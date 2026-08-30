@@ -28,6 +28,7 @@ import {
   UserPlus,
   UserCheck,
   Banknote,
+  Undo2,
   X,
 } from "lucide-react";
 
@@ -46,6 +47,8 @@ interface Registration {
   status: string;
   paymentMethod: "RAZORPAY" | "CASH";
   attended: boolean;
+  razorpayOrderId: string | null;
+  razorpayPaymentId: string | null;
   createdAt: string;
 }
 
@@ -189,6 +192,31 @@ export default function AdminPage() {
       const body = await res.json();
       if (!res.ok) {
         setError(body.error || "Could not mark this registration as paid.");
+        setMarkingId(null);
+        return;
+      }
+      await loadData();
+    } catch {
+      setError("Could not connect to the workshop registration backend.");
+    }
+    setMarkingId(null);
+  }
+
+  // Reverse a mistaken "Mark Paid" — flips a CASH row PAID → PENDING. Both
+  // roles, same as markCashPaid (a wrong click at the desk shouldn't need an
+  // admin to undo). Backend still refuses this for RAZORPAY rows.
+  async function unmarkCashPaid(id: string) {
+    if (!token) return;
+    setMarkingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`${API_URL}/admin/registrations/${id}/unmark-cash-paid`, {
+        method: "PATCH",
+        headers: { "x-admin-token": token },
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        setError(body.error || "Could not undo this payment.");
         setMarkingId(null);
         return;
       }
@@ -368,7 +396,11 @@ export default function AdminPage() {
       rows = rows.filter((r) => r.attended === want);
     }
 
-    const q = searchQuery.toLowerCase().trim();
+    const rawQ = searchQuery.toLowerCase().trim();
+    // Staff may paste a Reference ID straight from a confirmation email:
+    // "wr_<id>" (cash / walk-in) or "order_..." (Razorpay). Strip the wr_
+    // prefix so it matches the row id.
+    const q = rawQ.startsWith("wr_") ? rawQ.slice(3) : rawQ;
     if (q) {
       rows = rows.filter((r) =>
         r.name?.toLowerCase().includes(q) ||
@@ -376,7 +408,9 @@ export default function AdminPage() {
         r.phone?.toLowerCase().includes(q) ||
         r.college?.toLowerCase().includes(q) ||
         r.department?.toLowerCase().includes(q) ||
-        r.id?.toLowerCase().includes(q)
+        r.id?.toLowerCase().includes(q) ||
+        r.razorpayOrderId?.toLowerCase().includes(q) ||
+        r.razorpayPaymentId?.toLowerCase().includes(q)
       );
     }
 
@@ -893,7 +927,7 @@ export default function AdminPage() {
                   </div>
                   <input
                     type="text"
-                    placeholder="Search name, email, college, phone…"
+                    placeholder="Search name, email, phone, college, or reference ID…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-xl border focus:outline-none focus:ring-1 transition-all font-mono"
@@ -1072,6 +1106,23 @@ export default function AdminPage() {
                               >
                                 <Banknote className="w-3.5 h-3.5" />
                                 <span>{markingId === r.id ? "Marking…" : "Mark Paid"}</span>
+                              </button>
+                            )}
+
+                            {r.paymentMethod === "CASH" && r.status === "PAID" && (
+                              <button
+                                onClick={() => unmarkCashPaid(r.id)}
+                                disabled={markingId === r.id}
+                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold border transition-all disabled:opacity-50 cursor-pointer"
+                                style={{
+                                  background: "var(--surface-2)",
+                                  borderColor: "var(--line)",
+                                  color: "var(--ink-3)",
+                                }}
+                                title="Undo — flip this cash registration back to PENDING (wrong click, refund given, etc.)"
+                              >
+                                <Undo2 className="w-3.5 h-3.5" />
+                                <span>{markingId === r.id ? "Undoing…" : "Undo Paid"}</span>
                               </button>
                             )}
 

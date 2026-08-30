@@ -5,7 +5,6 @@ import helmet from "helmet";
 import { env } from "./lib/env.js";
 import { prisma } from "./lib/prisma.js";
 import { registerRouter } from "./routes/register.js";
-import { webhookRouter } from "./routes/webhook.js";
 import { adminRouter } from "./routes/admin.js";
 
 const app = express();
@@ -17,13 +16,12 @@ app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({ origin: env.FRONTEND_URL }));
 
-// Webhook route needs the RAW body for signature verification — mount it
-// before express.json() so the body isn't parsed/re-serialized first.
-app.use(
-  "/webhook/razorpay",
-  express.raw({ type: "application/json" }),
-  webhookRouter
-);
+// NOTE: the Razorpay webhook route (`POST /webhook/razorpay`) is intentionally
+// NOT mounted — online payment is disabled (registration is cash-only, see
+// HANDOFF.md 2026-08-30). Requests to it get a plain 404. To re-enable online
+// payment, restore the `webhookRouter` import and the
+// `app.use("/webhook/razorpay", express.raw({ type: "application/json" }), webhookRouter)`
+// mount here (it must stay above `express.json()` for raw-body signature checks).
 
 app.use(express.json());
 app.use(registerRouter);

@@ -35,18 +35,19 @@ export default function TermsPage() {
         <H2>1. Eligibility &amp; Registration</H2>
         <P>
           Registration is open to students from any college, as this is an inter-collegiate
-          workshop. A valid registration requires accurate name, email, and phone details, and
-          payment of the ₹150 registration fee via Razorpay. Registration is confirmed only once
-          payment is successfully received.
+          workshop. A valid registration requires accurate name, email, and phone details.
+          Submitting the form reserves your seat; the ₹150 registration fee is paid in cash at
+          the registration desk on event day, and registration is completed once the fee is
+          collected at check-in.
         </P>
       </div>
 
       <div>
         <H2>2. Payments</H2>
         <P>
-          Payments are processed by Razorpay, a third-party payment gateway. We do not
-          store your card, UPI, or banking credentials — Razorpay handles this directly.
-          Registration fees are subject to the <a href="/refund-policy" style={{ color: "#146c43", fontWeight: 600 }}>Refund &amp; Cancellation Policy</a>.
+          The ₹150 registration fee is collected in cash at the registration desk on event day.
+          The Site does not process online payments and does not collect card, UPI, or banking
+          details. Registration fees are subject to the <a href="/refund-policy" style={{ color: "#146c43", fontWeight: 600 }}>Refund &amp; Cancellation Policy</a>.
         </P>
       </div>
 
