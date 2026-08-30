@@ -23,6 +23,15 @@ import {
   Code2,
 } from "lucide-react";
 
+// lucide-react at this pinned version has no LinkedIn glyph — inline the mark.
+function LinkedInIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z" />
+    </svg>
+  );
+}
+
 const PhotoSlideshow = dynamic(() => import("@/components/PhotoSlideshow"), {
   ssr: false,
 });
@@ -485,20 +494,22 @@ export default function HomePage() {
           >
             {[
               {
-                initials: "PD",
+                photo: "/prabha.jpeg",
                 name: "Mr. Prabhakaran Dasarathan",
                 role: "Manager – Software Engineering Development",
                 org: "Planview India Pvt. Ltd.",
                 bio: "An experienced technology professional specializing in software engineering, application development, system design, and modern technologies.",
                 Icon: Code2,
+                linkedin: "https://www.linkedin.com/in/prabhakaran-dasarathan-05860293/",
               },
               {
-                initials: "DM",
+                photo: "/dhaya.jpeg",
                 name: "Mr. Dayanithi Manimaran",
                 role: "Senior Software Engineer",
                 org: "GAKBA Tech AI Private Limited",
                 bio: "A skilled software professional with expertise in Artificial Intelligence, software development, emerging technologies, and real-world AI applications.",
                 Icon: Cpu,
+                linkedin: null,
               },
             ].map((p) => (
               <div
@@ -533,25 +544,24 @@ export default function HomePage() {
                 <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative", zIndex: 2 }}>
                   <div
                     style={{
-                      width: 60,
-                      height: 60,
+                      width: 64,
+                      height: 64,
                       borderRadius: "50%",
-                      background: "var(--accent-light)",
-                      border: "1px solid var(--accent-line)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      overflow: "hidden",
+                      border: "2px solid var(--accent-line)",
                       flexShrink: 0,
-                      fontFamily: "var(--font-mono)",
-                      fontWeight: 700,
-                      fontSize: 18,
-                      color: "var(--accent)",
-                      letterSpacing: "0.04em",
+                      background: "var(--surface-2)",
                     }}
                   >
-                    {p.initials}
+                    <Image
+                      src={p.photo}
+                      alt={p.name}
+                      width={64}
+                      height={64}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
                   </div>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <h3
                       style={{
                         fontSize: "1.15rem",
@@ -605,6 +615,33 @@ export default function HomePage() {
                 >
                   {p.bio}
                 </p>
+
+                {p.linkedin && (
+                  <a
+                    href={p.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      alignSelf: "flex-start",
+                      gap: 8,
+                      marginTop: "auto",
+                      padding: "8px 16px",
+                      borderRadius: 9999,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      background: "var(--accent-light)",
+                      border: "1px solid var(--accent-line)",
+                      color: "var(--accent)",
+                      position: "relative",
+                      zIndex: 2,
+                    }}
+                  >
+                    <LinkedInIcon size={15} />
+                    View LinkedIn
+                  </a>
+                )}
               </div>
             ))}
           </div>

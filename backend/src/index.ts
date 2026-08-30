@@ -44,6 +44,23 @@ app.get("/health", async (_req, res) => {
 // rejections in admin.ts, or anything unexpected in registerRouter).
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);
+
+  // Prisma "record required but not found" — happens when two staff act on the
+  // same registration at once (e.g. both hit Delete, or one edits a row the
+  // other just deleted). Return a clean 404 instead of a scary 500 so the
+  // second click just says "already gone".
+  const code = (err as { code?: string })?.code;
+  if (code === "P2025") {
+    return res
+      .status(404)
+      .json({ error: "That registration no longer exists — it may have just been changed or deleted by someone else." });
+  }
+  // Unique-constraint violation (defence-in-depth; not reachable on the
+  // cash-only path today, but keep it a clean 409 rather than a 500).
+  if (code === "P2002") {
+    return res.status(409).json({ error: "That record already exists." });
+  }
+
   res.status(500).json({ error: "Something went wrong. Please try again." });
 };
 app.use(errorHandler);

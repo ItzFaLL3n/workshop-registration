@@ -302,11 +302,13 @@ export default function AdminPage() {
         method: "DELETE",
         headers: { "x-admin-token": token },
       });
-      if (!res.ok && res.status !== 204) {
+      // 204 = deleted; 404 = already gone (someone else deleted it) — both are
+      // "the row is no longer there", so just refresh without an error.
+      if (res.ok || res.status === 204 || res.status === 404) {
+        await loadData();
+      } else {
         const body = await res.json().catch(() => ({}));
         setError(body.error || "Could not delete this registration.");
-      } else {
-        await loadData();
       }
     } catch {
       setError("Could not connect to the workshop registration backend.");
@@ -945,185 +947,148 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Data Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[960px] border-collapse text-left text-xs sm:text-sm">
-                  <thead>
-                    <tr
-                      className="border-b text-[11px] font-mono uppercase tracking-wider"
-                      style={{
-                        background: "var(--surface-2)",
-                        borderColor: "var(--line)",
-                        color: "var(--ink-4)",
-                      }}
-                    >
-                      <th className="py-3 px-3 font-semibold">Participant</th>
-                      <th className="py-3 px-3 font-semibold">Contact Info</th>
-                      <th className="py-3 px-3 font-semibold">College &amp; Dept</th>
-                      <th className="py-3 px-3 font-semibold">Year / Gender</th>
-                      <th className="py-3 px-3 font-semibold">Food</th>
-                      <th className="py-3 px-3 font-semibold">Method</th>
-                      <th className="py-3 px-3 font-semibold">Status</th>
-                      <th className="py-3 px-3 font-semibold">Check-in</th>
-                      <th className="py-3 px-3 font-semibold">Date</th>
-                      <th
-                        className="py-3 px-3 font-semibold sticky right-0 z-10"
-                        style={{ background: "var(--surface-2)", boxShadow: "-8px 0 8px -6px rgba(0,0,0,0.25)" }}
-                      >
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y" style={{ borderColor: "var(--line)" }}>
-                    {filteredRegistrations.map((r) => (
-                      <tr
-                        key={r.id}
-                        className="transition-colors hover:bg-zinc-500/5"
-                      >
-                        {/* Participant Name */}
-                        <td className="py-3 px-3">
-                          <span className="font-semibold block" style={{ color: "var(--ink)" }}>
-                            {r.name}
-                          </span>
-                          <span className="text-[10px] font-mono" style={{ color: "var(--ink-4)" }}>
-                            ID: {r.id.slice(0, 8)}…
-                          </span>
-                        </td>
-
-                        {/* Contact */}
-                        <td className="py-3 px-3 space-y-0.5">
-                          <div className="flex items-center gap-1.5 text-xs font-mono max-w-[220px]" style={{ color: "var(--ink-2)" }}>
-                            <Mail className="w-3 h-3 text-zinc-500 flex-shrink-0" />
-                            <span className="truncate" title={r.email}>{r.email}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
-                            <Phone className="w-3 h-3 text-zinc-500" />
-                            <span>{r.phone}</span>
-                          </div>
-                        </td>
-
-                        {/* College & Department */}
-                        <td className="py-3 px-3 space-y-0.5 max-w-[200px]">
-                          <div className="flex items-center gap-1.5 text-xs truncate" style={{ color: "var(--ink-2)" }}>
-                            <Building2 className="w-3 h-3 text-zinc-500 flex-shrink-0" />
-                            <span className="truncate" title={r.college ?? ""}>{r.college ?? "—"}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs truncate" style={{ color: "var(--ink-4)" }}>
-                            <GraduationCap className="w-3 h-3 text-zinc-500 flex-shrink-0" />
-                            <span className="truncate" title={r.department ?? ""}>{r.department ?? "—"}</span>
-                          </div>
-                        </td>
-
-                        {/* Year / Gender */}
-                        <td className="py-3 px-3 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
-                          <span>{r.year ?? "—"}</span>
-                          <span className="mx-1 text-zinc-600">/</span>
-                          <span>{r.gender ?? "—"}</span>
-                        </td>
-
-                        {/* Food */}
-                        <td className="py-3 px-3 text-xs font-mono" style={{ color: "var(--ink-3)" }}>
-                          <span className="inline-flex items-center gap-1">
-                            <Utensils className="w-3 h-3 text-zinc-500" />
-                            {r.foodPreference ?? "Standard"}
-                          </span>
-                        </td>
-
-                        {/* Payment Method Badge */}
-                        <td className="py-3 px-3">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wide uppercase border ${
-                              r.paymentMethod === "CASH"
-                                ? "bg-sky-500/10 text-sky-500 border-sky-500/25"
-                                : "bg-violet-500/10 text-violet-500 border-violet-500/25"
-                            }`}
-                          >
-                            {r.paymentMethod === "CASH" ? <Wallet className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
-                            {r.paymentMethod === "CASH" ? "Cash" : "Razorpay"}
-                          </span>
-                        </td>
-
-                        {/* Status Badge */}
-                        <td className="py-3 px-3">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wide uppercase border ${
-                              r.status === "PAID"
-                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/25"
-                                : r.status === "PENDING"
-                                ? "bg-amber-500/10 text-amber-500 border-amber-500/25"
-                                : "bg-rose-500/10 text-rose-500 border-rose-500/25"
-                            }`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${
-                              r.status === "PAID" ? "bg-emerald-500" : r.status === "PENDING" ? "bg-amber-500" : "bg-rose-500"
-                            }`} />
-                            {r.status}
-                          </span>
-                        </td>
-
-                        {/* Check-in toggle */}
-                        <td className="py-3 px-3">
-                          <button
-                            onClick={() => toggleAttendance(r)}
-                            disabled={togglingId === r.id}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wide uppercase border transition-all disabled:opacity-50 cursor-pointer ${
-                              r.attended
-                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/25"
-                                : "bg-zinc-500/10 text-zinc-400 border-zinc-500/25"
-                            }`}
-                            title={r.attended ? "Checked in — click to undo" : "Mark as checked in"}
-                          >
-                            {r.attended ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                            {r.attended ? "Present" : "Absent"}
-                          </button>
-                        </td>
-
-                        {/* Date */}
-                        <td className="py-3 px-3 text-xs font-mono whitespace-nowrap" style={{ color: "var(--ink-4)" }}>
-                          {new Date(r.createdAt).toLocaleDateString("en-IN", {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </td>
-
-                        {/* Actions */}
-                        <td
-                          className="py-3 px-3 whitespace-nowrap sticky right-0 z-10"
-                          style={{ background: "var(--surface-1)", boxShadow: "-8px 0 8px -6px rgba(0,0,0,0.25)" }}
+              {/* Registration cards — responsive, no horizontal scroll.
+                  2-up on large screens so more records are visible at once. */}
+              <div className="p-4 sm:p-5">
+                {filteredRegistrations.length === 0 ? (
+                  <div className="py-12 text-center text-xs font-mono" style={{ color: "var(--ink-4)" }}>
+                    {searchQuery
+                      ? `No registrations found matching "${searchQuery}".`
+                      : "No registrations yet."}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+                    {filteredRegistrations.map((r) => {
+                      const canEdit = !(data?.role === "team" && r.paymentMethod === "RAZORPAY");
+                      const busy = markingId === r.id;
+                      return (
+                        <div
+                          key={r.id}
+                          className="rounded-xl border p-4 flex flex-col gap-3"
+                          style={{ background: "var(--surface-2)", borderColor: "var(--line)" }}
                         >
-                          <div className="flex items-center gap-1.5">
+                          {/* Header: name + badges */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm truncate" style={{ color: "var(--ink)" }} title={r.name}>
+                                {r.name}
+                              </p>
+                              <p className="text-[10px] font-mono" style={{ color: "var(--ink-4)" }}>
+                                ID: {r.id.slice(0, 10)}…
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center justify-end gap-1.5 flex-shrink-0">
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase border ${
+                                  r.paymentMethod === "CASH"
+                                    ? "bg-sky-500/10 text-sky-500 border-sky-500/25"
+                                    : "bg-violet-500/10 text-violet-500 border-violet-500/25"
+                                }`}
+                              >
+                                {r.paymentMethod === "CASH" ? <Wallet className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                                {r.paymentMethod === "CASH" ? "Cash" : "Razorpay"}
+                              </span>
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold uppercase border ${
+                                  r.status === "PAID"
+                                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/25"
+                                    : r.status === "PENDING"
+                                    ? "bg-amber-500/10 text-amber-500 border-amber-500/25"
+                                    : "bg-rose-500/10 text-rose-500 border-rose-500/25"
+                                }`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    r.status === "PAID" ? "bg-emerald-500" : r.status === "PENDING" ? "bg-amber-500" : "bg-rose-500"
+                                  }`}
+                                />
+                                {r.status}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Details */}
+                          <div
+                            className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-xs"
+                            style={{ color: "var(--ink-3)" }}
+                          >
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <Mail className="w-3 h-3 flex-shrink-0 text-zinc-500" />
+                              <span className="truncate font-mono" title={r.email}>{r.email}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Phone className="w-3 h-3 flex-shrink-0 text-zinc-500" />
+                              <span className="font-mono">{r.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <Building2 className="w-3 h-3 flex-shrink-0 text-zinc-500" />
+                              <span className="truncate" title={`${r.college ?? ""}${r.department ? " · " + r.department : ""}`}>
+                                {r.college ?? "—"}{r.department ? ` · ${r.department}` : ""}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <GraduationCap className="w-3 h-3 flex-shrink-0 text-zinc-500" />
+                              <span>{r.year ?? "—"} · {r.gender ?? "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Utensils className="w-3 h-3 flex-shrink-0 text-zinc-500" />
+                              <span>{r.foodPreference ?? "—"}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5" style={{ color: "var(--ink-4)" }}>
+                              <Clock className="w-3 h-3 flex-shrink-0 text-zinc-500" />
+                              <span>
+                                Registered{" "}
+                                {new Date(r.createdAt).toLocaleDateString("en-IN", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div
+                            className="flex flex-wrap items-center gap-1.5 pt-2.5 border-t"
+                            style={{ borderColor: "var(--line)" }}
+                          >
+                            <button
+                              onClick={() => toggleAttendance(r)}
+                              disabled={togglingId === r.id}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-semibold uppercase border transition-all disabled:opacity-50 cursor-pointer ${
+                                r.attended
+                                  ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/25"
+                                  : "bg-zinc-500/10 text-zinc-400 border-zinc-500/25"
+                              }`}
+                              title={r.attended ? "Checked in — click to undo" : "Mark as checked in"}
+                            >
+                              {r.attended ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                              {r.attended ? "Present" : "Absent"}
+                            </button>
+
                             {r.paymentMethod === "CASH" && r.status === "PENDING" && (
                               <button
                                 onClick={() => markCashPaid(r.id)}
-                                disabled={markingId === r.id}
-                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold border shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-                                style={{
-                                  background: "var(--accent-light)",
-                                  borderColor: "var(--accent-line)",
-                                  color: "var(--accent)",
-                                }}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                                style={{ background: "var(--accent-light)", borderColor: "var(--accent-line)", color: "var(--accent)" }}
                                 title="Confirm cash was collected at check-in"
                               >
                                 <Banknote className="w-3.5 h-3.5" />
-                                <span>{markingId === r.id ? "Marking…" : "Mark Paid"}</span>
+                                {busy ? "Marking…" : "Mark Paid"}
                               </button>
                             )}
 
                             {r.paymentMethod === "CASH" && r.status === "PAID" && (
                               <button
                                 onClick={() => unmarkCashPaid(r.id)}
-                                disabled={markingId === r.id}
-                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold border transition-all disabled:opacity-50 cursor-pointer"
-                                style={{
-                                  background: "var(--surface-2)",
-                                  borderColor: "var(--line)",
-                                  color: "var(--ink-3)",
-                                }}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all disabled:opacity-50 cursor-pointer"
+                                style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--ink-3)" }}
                                 title="Undo — flip this cash registration back to PENDING (wrong click, refund given, etc.)"
                               >
                                 <Undo2 className="w-3.5 h-3.5" />
-                                <span>{markingId === r.id ? "Undoing…" : "Undo Paid"}</span>
+                                {busy ? "Undoing…" : "Undo Paid"}
                               </button>
                             )}
 
@@ -1133,30 +1098,22 @@ export default function AdminPage() {
                                 onChange={(e) => changeStatus(r, e.target.value)}
                                 disabled={statusSavingId === r.id}
                                 className="px-2 py-1 text-[11px] rounded-lg border font-mono cursor-pointer disabled:opacity-50"
-                                style={{
-                                  background: "var(--surface-2)",
-                                  borderColor: "var(--line)",
-                                  color: "var(--ink-2)",
-                                }}
+                                style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--ink-2)" }}
                                 title="Change status (cash rows only)"
                               >
                                 {STATUS_OPTIONS.map((s) => (
-                                  <option key={s} value={s}>
-                                    {s}
-                                  </option>
+                                  <option key={s} value={s}>{s}</option>
                                 ))}
                               </select>
                             )}
 
-                            {!(data?.role === "team" && r.paymentMethod === "RAZORPAY") && (
+                            <span className="grow" />
+
+                            {canEdit && (
                               <button
                                 onClick={() => openEdit(r)}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border transition-all cursor-pointer"
-                                style={{
-                                  background: "var(--surface-2)",
-                                  borderColor: "var(--line)",
-                                  color: "var(--ink-3)",
-                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all cursor-pointer"
+                                style={{ background: "var(--surface-1)", borderColor: "var(--line)", color: "var(--ink-3)" }}
                                 title="Edit registrant details"
                               >
                                 Edit
@@ -1167,35 +1124,19 @@ export default function AdminPage() {
                               <button
                                 onClick={() => deleteRow(r)}
                                 disabled={deletingId === r.id}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium border transition-all disabled:opacity-50 cursor-pointer"
-                                style={{
-                                  background: "rgba(239, 68, 68, 0.08)",
-                                  borderColor: "rgba(239, 68, 68, 0.3)",
-                                  color: "#ef4444",
-                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all disabled:opacity-50 cursor-pointer"
+                                style={{ background: "rgba(239, 68, 68, 0.08)", borderColor: "rgba(239, 68, 68, 0.3)", color: "#ef4444" }}
                                 title="Delete permanently"
                               >
                                 {deletingId === r.id ? "…" : "Delete"}
                               </button>
                             )}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-
-                    {filteredRegistrations.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={10}
-                          className="py-12 text-center text-xs font-mono"
-                          style={{ color: "var(--ink-4)" }}
-                        >
-                          No registrations found matching &quot;{searchQuery}&quot;.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </div>

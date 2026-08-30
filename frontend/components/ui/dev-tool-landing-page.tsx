@@ -495,6 +495,29 @@ function CommandsSection() {
             Facilitators will be on hand to help with any installation issues before the first session begins.
           </p>
         </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <a
+            href="/resources"
+            className={`group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border text-sm font-semibold transition-all
+              ${dark
+                ? 'bg-zinc-900/50 border-zinc-800 text-zinc-200 hover:border-zinc-700 hover:bg-zinc-900'
+                : 'bg-white border-zinc-200 text-zinc-700 hover:border-zinc-300 hover:shadow-sm'}`}
+          >
+            <BookOpen className="w-4 h-4 text-emerald-500" />
+            Workshop Resources
+            <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+          </a>
+          <a
+            href="/#registration"
+            className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border text-sm font-medium transition-all
+              ${dark
+                ? 'border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700'
+                : 'border-zinc-200 text-zinc-500 hover:text-zinc-700 hover:border-zinc-300'}`}
+          >
+            Back to Registration
+          </a>
+        </div>
       </div>
     </section>
   );
