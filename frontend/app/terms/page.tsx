@@ -47,7 +47,9 @@ export default function TermsPage() {
         <P>
           The ₹200 registration fee is collected in cash at the registration desk on event day.
           The Site does not process online payments and does not collect card, UPI, or banking
-          details. Registration fees are subject to the <a href="/refund-policy" style={{ color: "#146c43", fontWeight: 600 }}>Refund &amp; Cancellation Policy</a>.
+          details. Cancellations and refunds are handled in person at the registration desk on
+          event day — cancelling a seat reservation beforehand costs nothing, and a fee already
+          paid in cash is refunded in cash at the desk on request before the workshop begins.
         </P>
       </div>
 
@@ -65,8 +67,8 @@ export default function TermsPage() {
         <P>
           The organizers may need to change the venue, schedule, or speakers due to circumstances
           beyond their control. Registered participants will be notified of any material change by
-          email. See the Refund Policy for what happens if the workshop is cancelled or
-          rescheduled.
+          email. If the workshop is cancelled or indefinitely postponed, any registration fee
+          already collected is refunded in full.
         </P>
       </div>
 
@@ -75,7 +77,7 @@ export default function TermsPage() {
         <P>
           The organizers are not liable for any indirect loss arising from your participation in
           or inability to attend the workshop, beyond a refund of the registration fee where
-          applicable under the Refund Policy.
+          applicable.
         </P>
       </div>
 

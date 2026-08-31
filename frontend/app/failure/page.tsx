@@ -297,7 +297,6 @@ export default function FailurePage() {
                 <ul className="footer-col-links">
                   <li><Link href="/terms">Terms &amp; Conditions</Link></li>
                   <li><Link href="/privacy">Privacy Policy</Link></li>
-                  <li><Link href="/refund-policy">Refund Policy</Link></li>
                 </ul>
               </div>
 
@@ -312,10 +311,9 @@ export default function FailurePage() {
           </div>
 
           <div className="footer-bottom-row">
-            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved. &middot; Designed by Selvan</span>
             <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
               <Link href="/privacy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Privacy</Link>
-              <Link href="/refund-policy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Refunds</Link>
               <Link href="/terms" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Terms</Link>
             </div>
           </div>

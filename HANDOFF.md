@@ -30,6 +30,9 @@
 - Homepage hero shows a **live countdown** to the event. No registration counter anywhere on the public site.
 - **"Pillars of the Workshop" homepage section is hidden** (2026-09-01, per request); `#overview` anchor moved to the marquee section.
 - **Help-desk phone in every footer:** `+91 63834 83749` (`tel:` link, labelled "Help desk", no name attached).
+- **`/refund-policy` route removed** (2026-09-01) — deleted from the app, all footer/nav/legal links stripped, `terms/page.tsx` reworded to be self-contained (cancellations/refunds handled in person at the desk). Now 12 static routes.
+- **Footer credit:** "Designed by Selvan" appended to the copyright line in every footer.
+- **`/admin` list filters:** added client-side Food (Veg / Non-Veg), Gender, and Year-of-study filters alongside the existing Status / Method / Attendance ones.
 
 ### Razorpay Live rejection (2026-08-30)
 

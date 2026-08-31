@@ -729,7 +729,6 @@ export default function HomePage() {
                 <ul className="footer-col-links">
                   <li><a href="tel:+916383483749">Help desk: +91&nbsp;63834&nbsp;83749</a></li>
                   <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
-                  <li><a href="/refund-policy">Refund Policy</a></li>
                   <li><a href="/admin">Admin Portal</a></li>
                 </ul>
               </div>
@@ -748,10 +747,9 @@ export default function HomePage() {
           </div>
 
           <div className="footer-bottom-row">
-            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved. &middot; Designed by Selvan</span>
             <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
               <a href="/privacy"        style={{ color: "var(--ink-4)", transition: "color .15s" }}>Privacy</a>
-              <a href="/refund-policy"  style={{ color: "var(--ink-4)", transition: "color .15s" }}>Refunds</a>
               <a href="/terms"          style={{ color: "var(--ink-4)", transition: "color .15s" }}>Terms</a>
             </div>
           </div>

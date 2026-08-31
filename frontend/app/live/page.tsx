@@ -167,7 +167,7 @@ export default function LivePage() {
                   style={{ objectFit: "cover" }}
                 />
               </div>
-              <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved.</span>
+              <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved. &middot; Designed by Selvan</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
               <Link href="/" style={{ color: "var(--ink-4)", transition: "color .15s" }}>

@@ -662,17 +662,15 @@ function SuccessContent() {
                 <ul className="footer-col-links">
                   <li><a href="tel:+916383483749">Help desk: +91&nbsp;63834&nbsp;83749</a></li>
                   <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
-                  <li><Link href="/refund-policy">Refund Policy</Link></li>
                 </ul>
               </div>
             </div>
           </div>
 
           <div className="footer-bottom-row">
-            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} Sacred Heart College. All rights reserved. &middot; Designed by Selvan</span>
             <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
               <Link href="/privacy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Privacy</Link>
-              <Link href="/refund-policy" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Refunds</Link>
               <Link href="/terms" style={{ color: "var(--ink-4)", transition: "color .15s" }}>Terms</Link>
             </div>
           </div>

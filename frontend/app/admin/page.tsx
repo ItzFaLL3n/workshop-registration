@@ -112,6 +112,9 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [filterMethod, setFilterMethod] = useState("ALL");
   const [filterAttendance, setFilterAttendance] = useState("ALL");
+  const [filterFood, setFilterFood] = useState("ALL");
+  const [filterGender, setFilterGender] = useState("ALL");
+  const [filterYear, setFilterYear] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [showWalkIn, setShowWalkIn] = useState(false);
@@ -398,6 +401,18 @@ export default function AdminPage() {
       rows = rows.filter((r) => r.attended === want);
     }
 
+    if (filterFood !== "ALL") {
+      rows = rows.filter((r) => r.foodPreference === filterFood);
+    }
+
+    if (filterGender !== "ALL") {
+      rows = rows.filter((r) => r.gender === filterGender);
+    }
+
+    if (filterYear !== "ALL") {
+      rows = rows.filter((r) => r.year === filterYear);
+    }
+
     const rawQ = searchQuery.toLowerCase().trim();
     // Staff may paste a Reference ID straight from a confirmation email:
     // "wr_<id>" (cash / walk-in) or "order_..." (Razorpay). Strip the wr_
@@ -417,7 +432,15 @@ export default function AdminPage() {
     }
 
     return rows;
-  }, [data?.registrations, searchQuery, filterMethod, filterAttendance]);
+  }, [
+    data?.registrations,
+    searchQuery,
+    filterMethod,
+    filterAttendance,
+    filterFood,
+    filterGender,
+    filterYear,
+  ]);
 
   // Aggregate metric stats
   const totalCount = data?.registrations.length || 0;
@@ -518,7 +541,7 @@ export default function AdminPage() {
           <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             {/* Access Key Input (admin or registration-team password) */}
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-4 space-y-1.5">
               <label
                 htmlFor="admin-pw"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
@@ -557,7 +580,7 @@ export default function AdminPage() {
             </div>
 
             {/* Status Filter */}
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-4 space-y-1.5">
               <label
                 htmlFor="admin-filter"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
@@ -589,7 +612,7 @@ export default function AdminPage() {
             </div>
 
             {/* Payment Method Filter */}
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-4 space-y-1.5">
               <label
                 htmlFor="admin-method-filter"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
@@ -620,7 +643,7 @@ export default function AdminPage() {
             </div>
 
             {/* Attendance Filter */}
-            <div className="md:col-span-3 space-y-1.5">
+            <div className="md:col-span-4 space-y-1.5">
               <label
                 htmlFor="admin-attendance-filter"
                 className="block text-xs font-mono uppercase tracking-wider font-semibold"
@@ -646,6 +669,105 @@ export default function AdminPage() {
                 </select>
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <UserCheck className="w-3.5 h-3.5" style={{ color: "var(--ink-4)" }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Food Preference Filter */}
+            <div className="md:col-span-4 space-y-1.5">
+              <label
+                htmlFor="admin-food-filter"
+                className="block text-xs font-mono uppercase tracking-wider font-semibold"
+                style={{ color: "var(--ink-3)" }}
+              >
+                Food
+              </label>
+              <div className="relative">
+                <select
+                  id="admin-food-filter"
+                  value={filterFood}
+                  onChange={(e) => setFilterFood(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all font-mono appearance-none cursor-pointer"
+                  style={{
+                    background: "var(--surface-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <option value="ALL">All Food</option>
+                  <option value="Vegetarian">Veg</option>
+                  <option value="Non-Vegetarian">Non-Veg</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Utensils className="w-3.5 h-3.5" style={{ color: "var(--ink-4)" }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Gender Filter */}
+            <div className="md:col-span-4 space-y-1.5">
+              <label
+                htmlFor="admin-gender-filter"
+                className="block text-xs font-mono uppercase tracking-wider font-semibold"
+                style={{ color: "var(--ink-3)" }}
+              >
+                Gender
+              </label>
+              <div className="relative">
+                <select
+                  id="admin-gender-filter"
+                  value={filterGender}
+                  onChange={(e) => setFilterGender(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all font-mono appearance-none cursor-pointer"
+                  style={{
+                    background: "var(--surface-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <option value="ALL">All Genders</option>
+                  {GENDER_OPTIONS.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Users className="w-3.5 h-3.5" style={{ color: "var(--ink-4)" }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Year of Study Filter */}
+            <div className="md:col-span-4 space-y-1.5">
+              <label
+                htmlFor="admin-year-filter"
+                className="block text-xs font-mono uppercase tracking-wider font-semibold"
+                style={{ color: "var(--ink-3)" }}
+              >
+                Year
+              </label>
+              <div className="relative">
+                <select
+                  id="admin-year-filter"
+                  value={filterYear}
+                  onChange={(e) => setFilterYear(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border focus:outline-none focus:ring-2 transition-all font-mono appearance-none cursor-pointer"
+                  style={{
+                    background: "var(--surface-2)",
+                    borderColor: "var(--line)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <option value="ALL">All Years</option>
+                  {YEAR_OPTIONS.map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <GraduationCap className="w-3.5 h-3.5" style={{ color: "var(--ink-4)" }} />
                 </div>
               </div>
             </div>
