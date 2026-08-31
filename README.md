@@ -11,7 +11,7 @@ no webhook, and no card/UPI data handled. A student fills the form → the backe
 creates a `PENDING` cash reservation and emails a Reference ID → the desk marks
 it `PAID` at check-in (or adds walk-ins directly).
 
-- `frontend/` — Next.js 14, **static export** (`output: "export"`) → **Cloudflare Pages** (`shcbca.online`)
+- `frontend/` — Next.js 14, **static export** (`output: "export"`) → **Cloudflare Pages** (``)
 - `backend/` — Express + Prisma + PostgreSQL
 - `docker-compose.yml` — the **VM stack**: Postgres + backend + Caddy (auto-HTTPS),
   reachable at `api.shcbca.online`. The frontend is **not** in this stack.
