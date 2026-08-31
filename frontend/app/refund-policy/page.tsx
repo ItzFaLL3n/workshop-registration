@@ -21,25 +21,24 @@ export default function RefundPolicyPage() {
             color: "#146c43",
           }}
         >
-          Draft — the refund window and processing time below are placeholders. Decide the real
-          terms and confirm before this goes live; Razorpay reviews this page during onboarding.
+          Draft — review the cash refund terms below and confirm before this goes live.
         </div>
       )}
 
       <P>
         This policy covers cancellations and refunds for registrations to VORTEX
-        NEOVIA&apos;27 (₹150 registration fee), organized by the Department of Computer
+        NEOVIA&apos;27 (₹200 registration fee), organized by the Department of Computer
         Applications, Sacred Heart College.
       </P>
 
       <div>
         <H2>1. Cancellations by You</H2>
         <P>
-          The ₹150 fee is only collected in cash at the registration desk on event day, so
+          The ₹200 fee is only collected in cash at the registration desk on event day, so
           cancelling a seat reservation beforehand costs you nothing — just email
           itzselvan74@gmail.com so we can free up your place. If you have already paid in cash at
           the desk and need to withdraw before the workshop begins, ask a registration-desk
-          organizer on the day for a full cash refund of your ₹150.
+          organizer on the day for a full cash refund of your ₹200.
         </P>
       </div>
 
@@ -58,7 +57,7 @@ export default function RefundPolicyPage() {
         <P>
           Payment is made in person at the registration desk, so online payment failures do not
           apply. If you believe you were given incorrect change or asked to pay more than the
-          ₹150 fee, raise it with a registration-desk organizer immediately, or email
+          ₹200 fee, raise it with a registration-desk organizer immediately, or email
           itzselvan74@gmail.com with your name and Reference ID and it will be corrected.
         </P>
       </div>

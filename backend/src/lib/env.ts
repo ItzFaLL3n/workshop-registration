@@ -32,7 +32,14 @@ function loadEnv() {
     REGISTRATION_TEAM_PASSWORD: process.env.REGISTRATION_TEAM_PASSWORD!,
     RESEND_API_KEY: process.env.RESEND_API_KEY!,
     EMAIL_FROM: process.env.EMAIL_FROM || "workshop@yourdomain.com",
-    WORKSHOP_FEE_RUPEES: Number(process.env.WORKSHOP_FEE_RUPEES || 150),
+    WORKSHOP_FEE_RUPEES: Number(process.env.WORKSHOP_FEE_RUPEES || 200),
+    // Master switch for public online registration. Flip to close it without a
+    // code change or a frontend rebuild: set REGISTRATION_OPEN=false in
+    // backend/.env and restart the backend container. Unset — or anything other
+    // than the exact string "false" — means OPEN. Only POST /register is gated;
+    // the admin desk can still add walk-ins and confirm cash after it closes.
+    REGISTRATION_OPEN:
+      (process.env.REGISTRATION_OPEN ?? "true").trim().toLowerCase() !== "false",
     PORT: process.env.PORT || 4000,
   } as const;
 }

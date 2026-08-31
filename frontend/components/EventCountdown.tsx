@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getRegistrationStatus } from "@/lib/api";
 
-// Sunday, 7 September 2026, 09:30 IST (kept in sync with the hero + registration copy).
-const EVENT_START = new Date("2026-09-07T09:30:00+05:30").getTime();
-// Online registration closes two days before the event (end of day IST).
-const REG_CLOSE = new Date("2026-09-05T23:59:59+05:30").getTime();
+// Wednesday, 9 September 2026, 08:30 IST (kept in sync with the hero + registration copy).
+const EVENT_START = new Date("2026-09-09T08:30:00+05:30").getTime();
+// Online registration closes 12:00 AM on 7 September 2026 (start of that day, IST) —
+// i.e. the very end of 6 September.
+const REG_CLOSE = new Date("2026-09-07T00:00:00+05:30").getTime();
 
 function breakdown(ms: number) {
   const t = Math.max(0, ms);
@@ -21,15 +23,21 @@ export default function EventCountdown() {
   // null until mounted so the static/prerendered markup and the first client
   // render match (no hydration mismatch); the ticking starts after mount.
   const [now, setNow] = useState<number | null>(null);
+  // Backend REGISTRATION_OPEN switch: null = not resolved yet, then true/false.
+  const [regOpenFlag, setRegOpenFlag] = useState<boolean | null>(null);
 
   useEffect(() => {
     setNow(Date.now());
     const id = setInterval(() => setNow(Date.now()), 1000);
+    getRegistrationStatus().then((s) => setRegOpenFlag(s.open));
     return () => clearInterval(id);
   }, []);
 
   const started = now !== null && now >= EVENT_START;
-  const regClosed = now !== null && now > REG_CLOSE;
+  // The manual switch wins once known; the fixed date is only a fallback for
+  // while the status check is in flight or has failed.
+  const regClosed =
+    regOpenFlag === false || (regOpenFlag === null && now !== null && now > REG_CLOSE);
   const parts = now === null ? null : breakdown(EVENT_START - now);
 
   const units: { value: number; label: string }[] = [
@@ -67,11 +75,11 @@ export default function EventCountdown() {
 
       <div className="ec-foot">
         {started ? (
-          <>September 7, 2026 &middot; 09:30 AM &ndash; 04:30 PM IST</>
+          <>September 9, 2026 &middot; 08:30 AM &ndash; 04:30 PM IST</>
         ) : regClosed ? (
           <>Online registration has closed.</>
         ) : (
-          <>Online registration closes <strong>September 5, 2026</strong> &mdash; two days before the event.</>
+          <>Online registration closes <strong>September 7, 2026, 12:00 AM</strong> &mdash; two days before the event.</>
         )}
       </div>
     </div>

@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "LLM Agents Workshop | Sacred Heart College",
   description:
-    "LLM Agents — Concept, Tools and Applications. An inter-collegiate workshop on September 7, 2026 by the Department of Computer Applications (BCA), Sacred Heart College.",
+    "LLM Agents — Concept, Tools and Applications. An inter-collegiate workshop on September 9, 2026 by the Department of Computer Applications (BCA), Sacred Heart College.",
   icons: {
     icon: "/department-logo.png",
     shortcut: "/department-logo.png",

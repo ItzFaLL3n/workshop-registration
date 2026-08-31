@@ -50,7 +50,7 @@ export default function HomePage() {
             <div className="hero-left-col">
               <div className="hero-eyebrow-pill">
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "inline-block" }} />
-                <span>INTER-COLLEGIATE WORKSHOP • 7TH SEPT 2026</span>
+                <span>INTER-COLLEGIATE WORKSHOP • 9TH SEPT 2026</span>
               </div>
 
               <h1 className="hero-title-display">
@@ -63,7 +63,7 @@ export default function HomePage() {
               </div>
 
               <p className="hero-desc-para">
-                The <strong>Department of Computer Applications (BCA)</strong> at Sacred Heart College cordially invites you to an intensive hands-on workshop on <strong>September 7, 2026</strong> at <strong>Kamarajar Arangam</strong> exploring Large Language Model Agents, autonomous reasoning, and modern AI toolchains.
+                The <strong>Department of Computer Applications (BCA)</strong> at Sacred Heart College cordially invites you to an intensive hands-on workshop on <strong>September 9, 2026</strong> at <strong>Kamarajar Arangam</strong> exploring Large Language Model Agents, autonomous reasoning, and modern AI toolchains.
               </p>
 
               <p className="hero-desc-para">
@@ -100,7 +100,9 @@ export default function HomePage() {
         </section>
 
         {/* ── 3. WHAT YOU WILL LEARN (MARQUEE) ─────────────────── */}
-        <div className="marquee-section">
+        {/* id="overview" lives here now that the Pillars section below is hidden,
+            so the navbar / footer "Overview" links still have a target. */}
+        <div className="marquee-section" id="overview" style={{ scrollMarginTop: 90 }}>
           <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 24px", marginBottom: 14, textAlign: "center" }}>
             <p className="marquee-label">
               What you will learn by the end of this workshop
@@ -154,79 +156,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── 4. PILLARS OF THE WORKSHOP ───────────────────────── */}
-        <section className="section-container" id="overview">
-          <div className="section-head">
-            <span className="section-eyebrow">Pillars of the Workshop</span>
-            <h2 className="section-title">Where intelligent systems are built.</h2>
-            <p className="section-desc">
-              Discover the core concepts, modern toolkits, and autonomous workflows
-              powering the future of AI.
-            </p>
-          </div>
-
-          <div className="feature-tri-grid">
-            <div className="base-feature-card">
-              <div>
-                <div className="card-top-icon-row">
-                  <div className="card-icon-box">
-                    <Brain style={{ width: 22, height: 22, color: "var(--accent)" }} />
-                  </div>
-                  <div className="card-arrow-indicator">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M6 14L14 6M14 6H7M14 6V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                </div>
-                <h3 className="card-title">Agentic Architecture</h3>
-                <p className="card-desc">
-                  Understand how Large Language Models transition from conversational
-                  chat to autonomous reasoning, memory retrieval, and planning loops.
-                </p>
-              </div>
-            </div>
-
-            <div className="base-feature-card">
-              <div>
-                <div className="card-top-icon-row">
-                  <div className="card-icon-box">
-                    <Cpu style={{ width: 22, height: 22, color: "var(--accent)" }} />
-                  </div>
-                  <div className="card-arrow-indicator">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M6 14L14 6M14 6H7M14 6V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                </div>
-                <h3 className="card-title">Modern AI Frameworks</h3>
-                <p className="card-desc">
-                  Gain direct experience with LangChain, LlamaIndex, Model Context
-                  Protocol (MCP), and local LLMs through live coding sandboxes.
-                </p>
-              </div>
-            </div>
-
-            <div className="base-feature-card">
-              <div>
-                <div className="card-top-icon-row">
-                  <div className="card-icon-box">
-                    <Terminal style={{ width: 22, height: 22, color: "var(--accent)" }} />
-                  </div>
-                  <div className="card-arrow-indicator">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M6 14L14 6M14 6H7M14 6V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                </div>
-                <h3 className="card-title">Autonomous Solutions</h3>
-                <p className="card-desc">
-                  Deploy custom agents that interact with real-world APIs, automate
-                  multi-step web tasks, execute code, and collaborate in teams.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* ── 4. PILLARS OF THE WORKSHOP — hidden per request (2026-09-01).
+            The three "Agentic Architecture / Modern AI Frameworks / Autonomous
+            Solutions" cards used to live here. Restore from git history if the
+            section is wanted back; the #overview anchor was moved up to the
+            marquee section above. ───────────────────────────────────────────── */}
 
         <hr className="section-divider" />
 
@@ -665,12 +599,12 @@ export default function HomePage() {
             <div className="side-info-card">
               <h4>Before you register</h4>
               <ul className="side-info-list">
-                <li><strong>Event Date:</strong> Sunday, September 7, 2026 (09:30 AM – 04:30 PM IST).</li>
-                <li><strong>Registration closes:</strong> September 5, 2026 — two days before the event.</li>
+                <li><strong>Event Date:</strong> Wednesday, September 9, 2026 (08:30 AM – 04:30 PM IST).</li>
+                <li><strong>Registration closes:</strong> September 7, 2026, 12:00 AM (two days before the event).</li>
                 <li><strong>Venue:</strong> Kamarajar Arangam, Sacred Heart College (Autonomous).</li>
                 <li>Use your official full name as per your college identity card.</li>
                 <li>One registration per participant email address.</li>
-                <li>Pay the ₹150 fee in cash at the registration desk on event day.</li>
+                <li>Pay the ₹200 fee in cash at the registration desk on event day.</li>
                 <li>Certificates will be issued by Department of Computer Applications (BCA).</li>
               </ul>
 
@@ -697,7 +631,7 @@ export default function HomePage() {
                 </p>
                 <p style={{ fontSize: 13.5, fontWeight: 550, color: "var(--ink)" }}>
                   Registrations are processed in real-time. Online registration closes on
-                  September 5, 2026 (two days before the event).
+                  September 7, 2026 at 12:00 AM (two days before the event).
                 </p>
               </div>
             </div>
@@ -716,7 +650,7 @@ export default function HomePage() {
 
           <div className="guidelines-grid">
             {[
-              { num: "01", title: "Reporting Time",    desc: "Report to Kamarajar Arangam 15 minutes before the 09:30 AM session for ID verification." },
+              { num: "01", title: "Reporting Time",    desc: "Report to Kamarajar Arangam 15 minutes before the 08:30 AM session for ID verification." },
               { num: "02", title: "Hardware",          desc: "Carry your laptop (Windows / macOS / Linux) with charger for hands-on lab exercises." },
               { num: "03", title: "Prerequisites",     desc: "Basic familiarity with any programming language is helpful. No prior AI experience is required." },
               { num: "04", title: "Student ID Card",   desc: "Carry your valid college identity card and the Reference ID from your confirmation email for check-in." },
@@ -793,8 +727,9 @@ export default function HomePage() {
               <div>
                 <span className="footer-col-title">Contact &amp; Help</span>
                 <ul className="footer-col-links">
-                  <li><a href="/refund-policy">Refund Policy</a></li>
+                  <li><a href="tel:+916383483749">Help desk: +91&nbsp;63834&nbsp;83749</a></li>
                   <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
+                  <li><a href="/refund-policy">Refund Policy</a></li>
                   <li><a href="/admin">Admin Portal</a></li>
                 </ul>
               </div>

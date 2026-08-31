@@ -521,6 +521,7 @@ export default function ResourcesPage() {
               <div>
                 <span className="footer-col-title">Help &amp; Inquiries</span>
                 <ul className="footer-col-links">
+                  <li><a href="tel:+916383483749">Help desk: +91&nbsp;63834&nbsp;83749</a></li>
                   <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
                 </ul>
               </div>

@@ -124,7 +124,7 @@ export default function LivePage() {
                 The live stream hasn&apos;t started yet
               </p>
               <p style={{ margin: "6px 0 0", fontSize: 13.5 }}>
-                Check back on event day — September 7, 2026, from 09:30 AM IST.
+                Check back on event day — September 9, 2026, from 08:30 AM IST.
               </p>
             </div>
           )}

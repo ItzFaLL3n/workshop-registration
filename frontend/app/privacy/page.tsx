@@ -21,8 +21,8 @@ export default function PrivacyPage() {
             color: "#146c43",
           }}
         >
-          Draft — review the bracketed placeholders below (contact email, retention period) and
-          confirm before this goes live.
+          Draft — review the contact email and retention period below and confirm before this
+          goes live.
         </div>
       )}
 
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
         <H2>3. Third Parties We Share Data With</H2>
         <P>
           Confirmation emails are sent via <strong>Resend</strong>, which receives your name and
-          email address for that purpose only. The ₹150 fee is collected in cash at the event, so
+          email address for that purpose only. The ₹200 fee is collected in cash at the event, so
           no payment processor receives your data. Neither party uses your data for any purpose
           beyond providing their service to us, and we do not share your information with any
           other third party.

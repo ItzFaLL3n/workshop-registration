@@ -24,9 +24,12 @@
 | Email | **Resend — domain `shcbca.online` verified**, real API key + `EMAIL_FROM=…@shcbca.online` in `backend/.env`. Confirmation + cash-reservation emails confirmed sending. | working |
 | Payments | **NONE — cash only, collected at the registration desk on event day.** Razorpay Live onboarding was declined. | see below |
 
-- **Event: Sunday, 7 September 2026, 09:30 AM – 04:30 PM IST.** Single day. Venue: Kamarajar Arangam.
-- **Online registration closes 5 September 2026** — notice only, the form stays open (no auto-disable).
+- **Event: Wednesday, 9 September 2026, 08:30 AM – 04:30 PM IST.** Single day. Venue: Kamarajar Arangam. *(Updated 2026-09-01 — was Sun 7 Sept, 09:30.)*
+- **Fee: ₹200** (updated 2026-09-01 from ₹150). `WORKSHOP_FEE_RUPEES` default is now 200 in `env.ts`; still overridable per-env.
+- **Online registration close is a manual switch** — `REGISTRATION_OPEN` env var on the backend (default `true`). Set `REGISTRATION_OPEN=false` in `backend/.env` + restart the backend container to close it; `POST /register` then 403s and the public form/countdown flip to a "closed" state via `GET /register/status`. No frontend rebuild. The "closes 7 September 2026, 12:00 AM" copy in the UI is the stated deadline / display fallback only.
 - Homepage hero shows a **live countdown** to the event. No registration counter anywhere on the public site.
+- **"Pillars of the Workshop" homepage section is hidden** (2026-09-01, per request); `#overview` anchor moved to the marquee section.
+- **Help-desk phone in every footer:** `+91 63834 83749` (`tel:` link, labelled "Help desk", no name attached).
 
 ### Razorpay Live rejection (2026-08-30)
 

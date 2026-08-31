@@ -38,6 +38,16 @@ const countLimiter = rateLimit({
 //  count immediately because the seat is considered held as soon as
 //  someone commits to "pay at event" — see WHATFIXED.md #14.
 // ──────────────────────────────────────────────
+// ──────────────────────────────────────────────
+//  GET /register/status  — public, no auth
+//  Lets the static frontend show a "closed" state without a rebuild. The
+//  authoritative gate is the POST /register check below; this is just so the
+//  form/countdown can react. Fail-open on the client if this errors.
+// ──────────────────────────────────────────────
+registerRouter.get("/register/status", countLimiter, (_req, res) => {
+  res.json({ open: env.REGISTRATION_OPEN });
+});
+
 registerRouter.get("/register/count", countLimiter, async (_req, res) => {
   try {
     const count = await prisma.registration.count({
@@ -57,6 +67,13 @@ registerRouter.get("/register/count", countLimiter, async (_req, res) => {
 // ──────────────────────────────────────────────
 registerRouter.post("/register", registerLimiter, async (req, res) => {
   try {
+    // Master switch — see env.ts. Closed = reject before touching the DB.
+    if (!env.REGISTRATION_OPEN) {
+      return res
+        .status(403)
+        .json({ error: "Online registration is closed. Cash registration is available at the desk on event day." });
+    }
+
     const validated = validateRegistrationInput(req.body);
     if ("error" in validated) {
       return res.status(400).json({ error: validated.error });

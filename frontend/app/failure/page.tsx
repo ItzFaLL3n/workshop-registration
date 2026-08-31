@@ -110,7 +110,7 @@ export default function FailurePage() {
                   marginBottom: 16,
                 }}
               >
-                <span>Transaction Incomplete</span>
+                <span>Registration Incomplete</span>
               </div>
 
               {/* Title */}
@@ -124,7 +124,7 @@ export default function FailurePage() {
                   lineHeight: 1.15,
                 }}
               >
-                Payment Didn&apos;t Go Through
+                Registration Didn&apos;t Go Through
               </h1>
 
               {/* Subtitle */}
@@ -137,7 +137,7 @@ export default function FailurePage() {
                   lineHeight: 1.6,
                 }}
               >
-                The payment session was cancelled or timed out by the gateway. If any amount was deducted, your issuing bank will automatically refund it within 3–5 business days.
+                Your registration didn&apos;t complete — it may have been cancelled or timed out. There is no online payment step, so nothing has been charged. You can try again right away.
               </p>
 
               {/* Security info box */}
@@ -168,7 +168,7 @@ export default function FailurePage() {
                     Your Registration Details Are Safe
                   </h4>
                   <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-3)", lineHeight: 1.5 }}>
-                    You can try registering again immediately. You can choose any UPI app (GPay, PhonePe, Paytm) or card at the gateway.
+                    You can try registering again right away. There is no online payment — the ₹200 fee is paid in cash at the registration desk on event day.
                   </p>
                 </div>
               </div>
@@ -304,6 +304,7 @@ export default function FailurePage() {
               <div>
                 <span className="footer-col-title">Help &amp; Inquiries</span>
                 <ul className="footer-col-links">
+                  <li><a href="tel:+916383483749">Help desk: +91&nbsp;63834&nbsp;83749</a></li>
                   <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
                 </ul>
               </div>

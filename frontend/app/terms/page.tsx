@@ -36,7 +36,7 @@ export default function TermsPage() {
         <P>
           Registration is open to students from any college, as this is an inter-collegiate
           workshop. A valid registration requires accurate name, email, and phone details.
-          Submitting the form reserves your seat; the ₹150 registration fee is paid in cash at
+          Submitting the form reserves your seat; the ₹200 registration fee is paid in cash at
           the registration desk on event day, and registration is completed once the fee is
           collected at check-in.
         </P>
@@ -45,7 +45,7 @@ export default function TermsPage() {
       <div>
         <H2>2. Payments</H2>
         <P>
-          The ₹150 registration fee is collected in cash at the registration desk on event day.
+          The ₹200 registration fee is collected in cash at the registration desk on event day.
           The Site does not process online payments and does not collect card, UPI, or banking
           details. Registration fees are subject to the <a href="/refund-policy" style={{ color: "#146c43", fontWeight: 600 }}>Refund &amp; Cancellation Policy</a>.
         </P>

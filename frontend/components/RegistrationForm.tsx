@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { registerForWorkshop } from "@/lib/api";
+import { useState, useRef, useEffect } from "react";
+import { registerForWorkshop, getRegistrationStatus } from "@/lib/api";
 
 // Online payment is disabled — every registration is a cash reservation
 // collected at the registration desk on event day (Razorpay Live onboarding
@@ -59,7 +59,14 @@ export default function RegistrationForm() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  // null = not checked yet (render the form; the backend is still the real
+  // gate). false = registration manually closed → show the closed panel.
+  const [regOpen, setRegOpen] = useState<boolean | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    getRegistrationStatus().then((s) => setRegOpen(s.open));
+  }, []);
 
   function validate(): FieldErrors {
     const e: FieldErrors = {};
@@ -112,13 +119,69 @@ export default function RegistrationForm() {
       // collected at the check-in desk on event day.
       window.location.href = `/success?method=cash&order_id=wr_${result.registrationId}`;
     } catch (err: any) {
-      setApiError(err.message || "Something went wrong. Please try again.");
+      const msg: string = err?.message || "Something went wrong. Please try again.";
+      // Backend returns 403 "Online registration is closed…" — swap to the
+      // closed panel instead of leaving the filled-in form on screen.
+      if (/registration is closed/i.test(msg)) {
+        setRegOpen(false);
+        return;
+      }
+      setApiError(msg);
       setLoading(false);
     }
   }
 
   function fieldClass(field: keyof FieldErrors) {
     return `form-row${errors[field] ? " invalid" : ""}`;
+  }
+
+  // Registration manually closed (backend REGISTRATION_OPEN=false). The check
+  // fails open, so we only swap in this panel on an explicit `false`.
+  if (regOpen === false) {
+    return (
+      <div
+        className="reg-form reveal"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          gap: 12,
+          padding: "40px 28px",
+        }}
+      >
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: "50%",
+            background: "var(--surface-2)",
+            border: "1px solid var(--line)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 20,
+          }}
+          aria-hidden="true"
+        >
+          ✓
+        </div>
+        <h3 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700, color: "var(--ink)" }}>
+          Online registration is closed
+        </h3>
+        <p style={{ margin: 0, fontSize: 13.5, color: "var(--ink-3)", lineHeight: 1.6, maxWidth: 380 }}>
+          Thank you for your interest. If you already reserved a seat, your confirmation
+          email still stands — just bring your Reference ID, a valid college ID, and the
+          ₹200 fee in cash to the registration desk on event day.
+        </p>
+        <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-4)", lineHeight: 1.6 }}>
+          Questions? Help desk:{" "}
+          <a href="tel:+916383483749" style={{ color: "var(--accent)" }}>
+            +91&nbsp;63834&nbsp;83749
+          </a>
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -155,8 +218,8 @@ export default function RegistrationForm() {
           }}
         />
         <span>
-          Online registration closes <strong>September 5, 2026</strong> — two days
-          before the event on September 7.
+          Online registration closes <strong>September 7, 2026, 12:00 AM</strong> — two
+          days before the event on September 9.
         </span>
       </div>
 
@@ -328,7 +391,7 @@ export default function RegistrationForm() {
           }}
         >
           <p style={{ margin: 0, fontSize: 13.5, fontWeight: 600, color: "var(--ink)" }}>
-            Pay ₹150 cash at the registration desk
+            Pay ₹200 cash at the registration desk
           </p>
           <p
             style={{
@@ -338,7 +401,7 @@ export default function RegistrationForm() {
               lineHeight: 1.5,
             }}
           >
-            Submitting this form reserves your seat. Bring <strong>₹150 in cash</strong> and a
+            Submitting this form reserves your seat. Bring <strong>₹200 in cash</strong> and a
             valid student/college ID to the registration desk on event day to complete your
             registration.
           </p>

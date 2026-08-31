@@ -165,7 +165,7 @@ function SuccessContent() {
                 {isCash ? (
                   <>
                     Welcome to <strong>Vortex Neovia &apos;27</strong>: LLM Agents Workshop. Your seat is reserved —
-                    bring <strong>₹150 in cash</strong> and a valid student/college ID to the registration desk on
+                    bring <strong>₹200 in cash</strong> and a valid student/college ID to the registration desk on
                     event day to complete your registration.
                   </>
                 ) : (
@@ -293,7 +293,7 @@ function SuccessContent() {
                     {isCash ? (
                       <>
                         <strong>Keep this for your records:</strong> Please screenshot or save your Reservation ID.
-                        Bring it along with <strong>₹150 in cash</strong> and your valid Student/College ID card to
+                        Bring it along with <strong>₹200 in cash</strong> and your valid Student/College ID card to
                         the registration desk on event day to complete check-in.
                       </>
                     ) : (
@@ -411,11 +411,11 @@ function SuccessContent() {
                 </span>
               </div>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--ink)" }}>
-                September 7, 2026
+                September 9, 2026
               </div>
               <div style={{ fontSize: 12.5, color: "var(--ink-3)", display: "flex", alignItems: "center", gap: 6 }}>
                 <Clock style={{ width: 13, height: 13 }} />
-                <span>09:30 AM – 04:30 PM IST</span>
+                <span>08:30 AM – 04:30 PM IST</span>
               </div>
             </div>
 
@@ -599,7 +599,7 @@ function SuccessContent() {
                     Arrive with your College ID &amp; Order ID
                   </h4>
                   <p style={{ margin: 0, fontSize: 13, color: "var(--ink-3)", lineHeight: 1.5 }}>
-                    Registration check-in counter opens promptly at <strong>09:00 AM</strong> at the <strong>Kamarajar Arangam entrance lobby</strong>.
+                    Registration check-in counter opens promptly at <strong>08:00 AM</strong> at the <strong>Kamarajar Arangam entrance lobby</strong>.
                   </p>
                 </div>
               </div>
@@ -660,8 +660,9 @@ function SuccessContent() {
               <div>
                 <span className="footer-col-title">Help &amp; Inquiries</span>
                 <ul className="footer-col-links">
-                  <li><Link href="/refund-policy">Refund Policy</Link></li>
+                  <li><a href="tel:+916383483749">Help desk: +91&nbsp;63834&nbsp;83749</a></li>
                   <li><a href="mailto:bca@shctpt.edu">bca@shctpt.edu</a></li>
+                  <li><Link href="/refund-policy">Refund Policy</Link></li>
                 </ul>
               </div>
             </div>
