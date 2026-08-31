@@ -2,7 +2,7 @@
 
 **Project:** VORTEX NEOVIA'27 — LLM Agents Workshop Registration
 **College:** Sacred Heart College, Dept. of Computer Applications
-**Last updated:** 2026-08-30
+**Last updated:** 2026-09-01
 **See also:** `CLAUDE.md` — canonical context file. `WHATFIXED.md` — detailed error/fix log. `docs/runbooks/go-live.md` — full manual go-live checklist.
 
 > **Everything below the 2026-08-30 block is history.** Hostnames in it
@@ -19,7 +19,7 @@
 |---|---|---|
 | Domain | `shcbca.online` — bought on **GoDaddy**, nameservers → **Cloudflare** (free plan) | live |
 | Frontend | **Cloudflare Pages**, static export, `https://shcbca.online` (+ `www` → apex redirect rule) | live, building from branch `feat/cloudflare-migration-attendance` |
-| API + Postgres + Caddy | **Azure VM**, `https://api.shcbca.online` | live, deployed at commit `04e5fdb` |
+| API + Postgres + Caddy | **Azure VM**, `https://api.shcbca.online` | live, **redeployed 2026-09-01** for the ₹200 / manual-switch / `/register/status` changes; `/health` + `/register/status` verified 200 |
 | `api` DNS record | Cloudflare `A` record, **DNS only / grey cloud** — Cloudflare is NOT in front of the API, so Caddy does its own Let's Encrypt; **no Origin Cert, no WAF rule** | — |
 | Email | **Resend — domain `shcbca.online` verified**, real API key + `EMAIL_FROM=…@shcbca.online` in `backend/.env`. Confirmation + cash-reservation emails confirmed sending. | working |
 | Payments | **NONE — cash only, collected at the registration desk on event day.** Razorpay Live onboarding was declined. | see below |
@@ -33,6 +33,16 @@
 - **`/refund-policy` route removed** (2026-09-01) — deleted from the app, all footer/nav/legal links stripped, `terms/page.tsx` reworded to be self-contained (cancellations/refunds handled in person at the desk). Now 12 static routes.
 - **Footer credit:** "Designed by Selvan" appended to the copyright line in every footer.
 - **`/admin` list filters:** added client-side Food (Veg / Non-Veg), Gender, and Year-of-study filters alongside the existing Status / Method / Attendance ones.
+
+### Launch status — 2026-09-01
+
+**Site is launch-ready.** Owner has verified everything end-to-end **except**:
+
+- [ ] `NEXT_PUBLIC_YOUTUBE_VIDEO_ID` — set in the Cloudflare Pages project env + redeploy for the `/live` stream. **Owner will do this the day before the event.** Until then `/live` shows the "not started" placeholder (harmless).
+
+Done / verified: backend redeployed and health-checked; ₹200 + Sept 9 copy live; `REGISTRATION_OPEN` switch tested (currently `true`); Pillars section hidden; `/refund-policy` removed; footer help-desk number + "Designed by Selvan" live; `/admin` Food/Gender/Year filters; `tsc` + `next build` clean.
+
+Operational runbook (uptime monitor, open/close switch, event-day, rate-limit gotcha, after-event shutdown) is in **`CLAUDE.md` → "Operations, monitoring & go-live"**.
 
 ### Razorpay Live rejection (2026-08-30)
 

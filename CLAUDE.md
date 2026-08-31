@@ -167,15 +167,69 @@ This was **built now but is meant to be started later**, close to the event, so 
 
 Don't spend the student credit on anything beyond this VM unless a real need comes up — it's meant to comfortably outlast this one event.
 
-## Go-live checklist
+## Operations, monitoring & go-live (cash-only launch — updated 2026-09-01)
 
-- [ ] One ₹1 end-to-end sandbox test — confirm DB row flips to PAID and admin page shows it
-- [ ] Swap in Razorpay **Live Mode** keys (`RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET`) and re-register the webhook under Live Mode (`RAZORPAY_WEBHOOK_SECRET` changes too — Test and Live webhooks are separate)
-- [ ] One real low-value production transaction before opening registration publicly
-- [ ] `ADMIN_PASSWORD` set to something long and random (not the placeholder)
-- [ ] Resources page has real, final content (slide deck / repo / cheat sheet links)
-- [ ] DNS + HTTPS confirmed working on both `yourdomain.com` and `api.yourdomain.com`
-- [ ] Set up a free uptime monitor (e.g. UptimeRobot) pinging `/health` so a crash surfaces immediately instead of silently
+> The old Razorpay-era checklist is gone — launch is **cash-only**, no gateway.
+> Event: **Wed 9 Sept 2026, 08:30 AM – 04:30 PM IST**, Kamarajar Arangam. Fee **₹200**.
+
+### Live URLs + health checks
+
+- Front end: `https://shcbca.online` (Cloudflare Pages, static, auto-deploys on push to `feat/cloudflare-migration-attendance`).
+- API: `https://api.shcbca.online` (Azure VM — Docker Compose: postgres + backend + caddy).
+- `curl -s https://api.shcbca.online/health` → `{"ok":true,"db":true}` (503 if Postgres is down).
+- `curl -s https://api.shcbca.online/register/status` → `{"open":true|false}`.
+
+### Uptime monitoring (do this — uptime is the top priority during the event)
+
+`/health` runs a real `SELECT 1`, so a dead DB / crashed container surfaces as a non-200.
+Set up **UptimeRobot** (free: 50 monitors, 5-min checks):
+1. HTTP(s) monitor → `https://api.shcbca.online/health`, 5-min interval, alert after **1** failed check.
+   (Or a Keyword monitor: keyword `"ok":true`, alert when not found.)
+2. Add email (and SMS / Telegram / WhatsApp for event days) as alert contacts.
+3. Add a second HTTP(s) monitor for `https://shcbca.online` (catches DNS / cert / Pages issues).
+
+### Opening / closing public registration — manual switch
+
+`REGISTRATION_OPEN` env var on the backend (default `true`; only the exact string `false` closes it).
+No fixed cutoff, no frontend rebuild:
+
+```bash
+# on the VM — close
+sed -i 's/^REGISTRATION_OPEN=.*/REGISTRATION_OPEN=false/' backend/.env && docker compose restart backend
+# reopen: set it back to true and restart
+```
+
+Closed ⇒ `POST /register` → 403, `GET /register/status` → `{open:false}`, the public form + hero
+countdown show a "closed" state. Admin walk-ins / mark-cash-paid keep working regardless.
+
+### Before opening registration publicly
+
+- [ ] Cloudflare Pages build for the latest push is **green**; spot-check live site (₹200, Sept 9, no Pillars section, footer help-desk number + "Designed by Selvan", no Refund Policy link, `/admin` Food/Gender/Year filters).
+- [ ] `ADMIN_PASSWORD` + `REGISTRATION_TEAM_PASSWORD` on the VM are long/random (not `change-this-…`); `docker compose restart backend` if changed.
+- [ ] One real end-to-end test on production: register → reservation email arrives (₹200, `wr_…` ref) → `/admin` Mark Paid → Undo Paid → Add Walk-in.
+- [ ] Clear test rows: `docker compose exec postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "TRUNCATE \"Registration\";"'`
+- [ ] Cloudflare Pages → Settings → Builds → **Build watch paths = `frontend/*`** (stop backend/doc commits burning builds).
+- [ ] `/resources` "materials" — real deck / repo / cheat-sheet URLs + `ready: true` in `app/resources/page.tsx` (`const materials`). Not launch-blocking.
+- [ ] UptimeRobot monitors live (above).
+
+### Event day (Wed 9 Sept)
+
+- [ ] Set `NEXT_PUBLIC_YOUTUBE_VIDEO_ID` in the **Cloudflare Pages** project env + redeploy — the only thing that makes `/live` show the stream. **(Owner: set the day before the event.)**
+- Check-in desk: `/admin` with the **team** password — search name / phone / Reference ID, "Mark Paid" on cash collection, "Present" toggle for attendance, "Add Walk-in" for no-prior-registration. Use the Year / Food / Gender filters for materials + catering counts. CSV export is admin-only.
+
+### Gotchas
+
+- **Rate limit:** `POST /register` = 120 / 15 min / IP. A college lab registering en masse from one shared/NAT IP can trip "Too many attempts". Spread bulk drives out, or raise the limit in `backend/src/routes/register.ts` (`registerLimiter`) before the event.
+- **Countdown copy:** the hero still shows "Online registration closes September 7, 2026, 12:00 AM" as informational text. The `REGISTRATION_OPEN` switch is authoritative — the form stays open past that date if the switch is on — but the line reads as stale if registration is deliberately extended. Reword `components/EventCountdown.tsx` + `RegistrationForm.tsx` + `page.tsx` if extending.
+- `/failure` is an orphan route (no cash flow reaches it) but still builds; copy is cash-appropriate.
+
+### After the event
+
+```bash
+docker compose exec postgres sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > vortex-registrations-backup.sql   # if keeping data
+docker compose down                                                                                                 # stop containers
+```
+Then **Stop (deallocate)** the VM in the Azure portal to stop spending student credit.
 
 ## Key decisions to remember
 
