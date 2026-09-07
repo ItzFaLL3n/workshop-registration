@@ -39,7 +39,7 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
             </div>
           </div>
           <div className="brand-info">
-            <span className="brand-title">Sacred Heart College</span>
+            <span className="brand-title">Sacred Heart College (Autonomous)</span>
             <span className="brand-sub">Dept. of Computer Applications (BCA)</span>
           </div>
         </Link>

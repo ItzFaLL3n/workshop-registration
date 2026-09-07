@@ -5,9 +5,6 @@ import { getRegistrationStatus } from "@/lib/api";
 
 // Wednesday, 9 September 2026, 08:30 IST (kept in sync with the hero + registration copy).
 const EVENT_START = new Date("2026-09-09T08:30:00+05:30").getTime();
-// Online registration closes 12:00 AM on 7 September 2026 (start of that day, IST) —
-// i.e. the very end of 6 September.
-const REG_CLOSE = new Date("2026-09-07T00:00:00+05:30").getTime();
 
 function breakdown(ms: number) {
   const t = Math.max(0, ms);
@@ -34,10 +31,9 @@ export default function EventCountdown() {
   }, []);
 
   const started = now !== null && now >= EVENT_START;
-  // The manual switch wins once known; the fixed date is only a fallback for
-  // while the status check is in flight or has failed.
-  const regClosed =
-    regOpenFlag === false || (regOpenFlag === null && now !== null && now > REG_CLOSE);
+  // No fixed cutoff — the backend REGISTRATION_OPEN switch is the only authority
+  // (getRegistrationStatus() fails open, so a blip never shows a false "closed").
+  const regClosed = regOpenFlag === false;
   const parts = now === null ? null : breakdown(EVENT_START - now);
 
   const units: { value: number; label: string }[] = [
@@ -79,7 +75,7 @@ export default function EventCountdown() {
         ) : regClosed ? (
           <>Online registration has closed.</>
         ) : (
-          <>Online registration closes <strong>September 7, 2026, 12:00 AM</strong> &mdash; two days before the event.</>
+          <>Online registration is open &mdash; secure your seat early.</>
         )}
       </div>
     </div>

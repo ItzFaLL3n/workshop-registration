@@ -218,8 +218,7 @@ export default function RegistrationForm() {
           }}
         />
         <span>
-          Online registration closes <strong>September 7, 2026, 12:00 AM</strong> — two
-          days before the event on September 9.
+          Register early — <strong>online registration closes once all seats are filled</strong>.
         </span>
       </div>
 

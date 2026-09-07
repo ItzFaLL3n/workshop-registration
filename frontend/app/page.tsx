@@ -63,7 +63,7 @@ export default function HomePage() {
               </div>
 
               <p className="hero-desc-para">
-                The <strong>Department of Computer Applications (BCA)</strong> at Sacred Heart College cordially invites you to an intensive hands-on workshop on <strong>September 9, 2026</strong> at <strong>Kamarajar Arangam</strong> exploring Large Language Model Agents, autonomous reasoning, and modern AI toolchains.
+                The <strong>Department of Computer Applications (BCA)</strong> at Sacred Heart College (Autonomous) cordially invites you to an intensive hands-on workshop on <strong>September 9, 2026</strong> at <strong>Kamarajar Arangam</strong> exploring Large Language Model Agents, autonomous reasoning, and modern AI toolchains.
               </p>
 
               <p className="hero-desc-para">
@@ -600,7 +600,7 @@ export default function HomePage() {
               <h4>Before you register</h4>
               <ul className="side-info-list">
                 <li><strong>Event Date:</strong> Wednesday, September 9, 2026 (08:30 AM – 04:30 PM IST).</li>
-                <li><strong>Registration closes:</strong> September 7, 2026, 12:00 AM (two days before the event).</li>
+                <li><strong>Register early:</strong> online registration closes once seats are full.</li>
                 <li><strong>Venue:</strong> Kamarajar Arangam, Sacred Heart College (Autonomous).</li>
                 <li>Use your official full name as per your college identity card.</li>
                 <li>One registration per participant email address.</li>
@@ -630,8 +630,8 @@ export default function HomePage() {
                   Live Registration Status
                 </p>
                 <p style={{ fontSize: 13.5, fontWeight: 550, color: "var(--ink)" }}>
-                  Registrations are processed in real-time. Online registration closes on
-                  September 7, 2026 at 12:00 AM (two days before the event).
+                  Registrations are processed in real-time. Secure your seat early —
+                  online registration closes once all seats are filled.
                 </p>
               </div>
             </div>
