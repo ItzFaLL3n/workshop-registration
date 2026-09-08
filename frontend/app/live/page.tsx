@@ -1,17 +1,14 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Radio, ArrowRight } from "lucide-react";
 import FloatingNavbar from "@/components/FloatingNavbar";
+import LivePlayer from "./LivePlayer";
 
 export const metadata = {
   title: "Live · VORTEX NEOVIA '27",
   description: "Watch the LLM Agents Workshop live stream.",
 };
-
-// Just the YouTube video / stream id (inlined at build time). Blank until
-// the stream is set up — set it in the Cloudflare Pages project env and
-// redeploy on event day.
-const VIDEO_ID = (process.env.NEXT_PUBLIC_YOUTUBE_VIDEO_ID || "").trim();
 
 export default function LivePage() {
   return (
@@ -77,57 +74,21 @@ export default function LivePage() {
           </div>
 
           {/* Player / placeholder */}
-          {VIDEO_ID ? (
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                paddingTop: "56.25%",
-                borderRadius: 20,
-                overflow: "hidden",
-                border: "1px solid var(--line)",
-                background: "var(--surface-2)",
-                boxShadow: "0 20px 50px rgba(0, 0, 0, 0.35)",
-              }}
-            >
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${VIDEO_ID}`}
-                title="VORTEX NEOVIA '27 — Live"
-                loading="lazy"
-                allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
+          <Suspense
+            fallback={
+              <div
                 style={{
-                  position: "absolute",
-                  inset: 0,
                   width: "100%",
-                  height: "100%",
-                  border: 0,
+                  paddingTop: "56.25%",
+                  borderRadius: 20,
+                  border: "1px solid var(--line)",
+                  background: "var(--surface-2)",
                 }}
               />
-            </div>
-          ) : (
-            <div
-              style={{
-                width: "100%",
-                borderRadius: 20,
-                border: "1px dashed var(--line-2)",
-                background: "var(--surface-1)",
-                padding: "clamp(48px, 10vw, 88px) 24px",
-                textAlign: "center",
-                color: "var(--ink-3)",
-              }}
-            >
-              <Radio
-                style={{ width: 30, height: 30, color: "var(--ink-4)", margin: "0 auto 14px" }}
-              />
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--ink-2)" }}>
-                The live stream hasn&apos;t started yet
-              </p>
-              <p style={{ margin: "6px 0 0", fontSize: 13.5 }}>
-                Check back on event day — September 9, 2026, from 08:30 AM IST.
-              </p>
-            </div>
-          )}
+            }
+          >
+            <LivePlayer />
+          </Suspense>
 
           {/* Footer link */}
           <div style={{ marginTop: 28, textAlign: "center" }}>
