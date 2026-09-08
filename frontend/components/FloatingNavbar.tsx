@@ -11,7 +11,7 @@ interface FloatingNavbarProps {
 
 export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isInstallPage = currentPath.startsWith("/install");
+  const isResourcesPage = currentPath.startsWith("/resources");
   const isLivePage = currentPath.startsWith("/live");
 
   // The #overview / #registration sections only exist on the homepage. On every
@@ -50,15 +50,15 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
           <nav className="main-nav" aria-label="Main Navigation">
             <a
               href={overviewHref}
-              className={`nav-link${!isInstallPage ? " active" : ""}`}
+              className={`nav-link${isHome ? " active" : ""}`}
             >
               Overview
             </a>
             <Link
-              href="/install"
-              className={`nav-link${isInstallPage ? " active" : ""}`}
+              href="/resources"
+              className={`nav-link${isResourcesPage ? " active" : ""}`}
             >
-              Setup Guide
+              Resources
             </Link>
             <Link
               href="/live"
@@ -117,11 +117,11 @@ export default function FloatingNavbar({ currentPath = "/" }: FloatingNavbarProp
           Overview
         </a>
         <Link
-          href="/install"
+          href="/resources"
           className="nav-link"
           onClick={() => setMobileMenuOpen(false)}
         >
-          Setup Guide
+          Resources
         </Link>
         <Link
           href="/live"

@@ -419,17 +419,17 @@ const FloatingIconsHero = React.forwardRef<
             >
               <span className="inline-flex items-center gap-1.5" style={{ color: "var(--ink-3)" }}>
                 <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
-                Python 3.11+
+                Python 3.10+
               </span>
               <span style={{ color: "var(--line-2)" }}>·</span>
               <span className="inline-flex items-center gap-1.5" style={{ color: "var(--ink-3)" }}>
                 <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
-                Ollama Local Runner
+                Runs fully offline
               </span>
               <span style={{ color: "var(--line-2)" }}>·</span>
               <span className="inline-flex items-center gap-1.5" style={{ color: "var(--ink-3)" }}>
                 <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
-                LangChain &amp; LlamaIndex
+                14 hands-on demos
               </span>
             </div>
           </div>
@@ -438,10 +438,10 @@ const FloatingIconsHero = React.forwardRef<
           <div className="lg:col-span-6 relative w-full pt-4 lg:pt-0">
             <div className="mb-3 flex items-center justify-between">
               <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-wider font-semibold" style={{ color: "var(--ink-4)" }}>
-                Core Agent Ecosystem · Live Tools
+                What you&apos;ll build · Workshop topics
               </span>
               <span className="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded-full border" style={{ background: "var(--surface-2)", borderColor: "var(--line)", color: "var(--accent)" }}>
-                {isDesktop ? "Interactive Physics" : "12 Tools Ready"}
+                {isDesktop ? "Interactive" : `${icons.length} topics`}
               </span>
             </div>
 
