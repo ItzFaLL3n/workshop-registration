@@ -59,7 +59,7 @@ const INSTALL_CODE = [
   { num: 19, type: 'empty',   text: '' },
   { num: 20, type: 'comment', text: '# Step 6 — (Optional) API key for the live demos 05-13' },
   { num: 21, type: 'code',    tokens: [{ text: 'copy', cls: 'text-emerald-400' }, { text: ' .env.example .env', cls: 'text-rose-400' }, { text: '   # macOS / Linux: cp .env.example .env', cls: 'text-zinc-500' }] },
-  { num: 22, type: 'comment', text: '#   then paste ONE key:  ANTHROPIC_API_KEY   — or —   AzureOpenAIKey + endpoint + model' },
+  { num: 22, type: 'comment', text: '#   then paste ONE key:  ANTHROPIC_API_KEY   — or —   OPENROUTER_API_KEY' },
   { num: 23, type: 'empty',   text: '' },
   { num: 24, type: 'comment', text: '# Step 7 — Verify with a demo that needs no key' },
   { num: 25, type: 'code',    tokens: [{ text: 'cd', cls: 'text-emerald-400' }, { text: ' 01-Basic-AI-Example', cls: 'text-rose-400' }] },
@@ -172,14 +172,14 @@ const STEPS = [
     border: 'border-rose-400/20',
     glow: 'group-hover:shadow-[0_0_40px_-8px_rgba(251,113,133,0.2)]',
     description:
-      'Every demo runs offline in MOCK_MODE with no key. Add one only to see real model responses in demos 05 to 13. Copy .env.example to .env inside that demo folder and fill in ONE provider — Anthropic (ANTHROPIC_API_KEY) or Azure OpenAI (key + endpoint + deployment name). Never commit a real .env.',
+      'Every demo runs offline in MOCK_MODE with no key. Add one only to see real model responses in demos 05 to 13. Copy .env.example to .env inside that demo folder and fill in ONE provider — Anthropic (ANTHROPIC_API_KEY) or OpenRouter (OPENROUTER_API_KEY). Never commit a real .env.',
     proof: {
       label: 'Configure',
       lines: [
         { text: '$ copy .env.example .env',        dim: false },
         { text: '# ANTHROPIC_API_KEY=sk-ant-...',  dim: true  },
         { text: '#      — or —',                   dim: true  },
-        { text: '# AzureOpenAIKey=... + endpoint', dim: false },
+        { text: '# OPENROUTER_API_KEY=sk-or-...',  dim: false },
       ],
     },
   },
@@ -212,14 +212,14 @@ const PREREQS = [
   { icon: Layers,   label: 'Python extension',  note: 'ms-python.python',       accent: 'text-violet-400',  href: 'https://marketplace.visualstudio.com/items?itemName=ms-python.python' },
   { icon: BookOpen, label: 'Demo pack',         note: 'Google Drive',          accent: 'text-amber-400',   href: DRIVE_URL },
   { icon: Key,      label: 'Anthropic key',     note: 'anthropic.com',         accent: 'text-rose-400',    href: 'https://console.anthropic.com' },
-  { icon: Zap,      label: 'Azure OpenAI',      note: 'ai.azure.com',           accent: 'text-sky-400',     href: 'https://ai.azure.com' },
+  { icon: Zap,      label: 'OpenRouter',        note: 'openrouter.ai/keys',     accent: 'text-sky-400',     href: 'https://openrouter.ai/keys' },
 ];
 
 /** What the workshop actually covers — shown in the floating hero grid. */
 const WORKSHOP_STACK: IconProps[] = [
   { id: 1,  name: 'Python 3.10+', category: 'Core runtime',           icon: IconPython },
   { id: 2,  name: 'Claude API',   category: 'Anthropic SDK',          icon: IconAnthropic },
-  { id: 3,  name: 'Azure OpenAI', category: 'Alternate provider',     icon: IconOpenAI },
+  { id: 3,  name: 'OpenRouter',   category: 'Alternate provider',     icon: IconOpenAI },
   { id: 4,  name: 'MCP',          category: 'Tools via a server',     icon: IconMCP },
   { id: 5,  name: 'RAG',          category: 'Embeddings + retrieval', icon: IconLlamaIndex },
   { id: 6,  name: 'Agents',       category: 'ReAct loop + tools',     icon: IconLangChain },
